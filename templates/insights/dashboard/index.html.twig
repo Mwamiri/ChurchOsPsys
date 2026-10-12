@@ -1,0 +1,122 @@
+{% extends 'base.html.twig' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% set church_name = church %}
+
+{% block content %}
+<!-- Stat tiles -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    {% macro stat(label, value, icon_path, color) %}
+    <div class="bg-white rounded-xl border border-gray-200 p-5 flex items-start gap-4">
+        <div class="p-2.5 rounded-lg {{ color }} flex-shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ icon_path }}"/>
+            </svg>
+        </div>
+        <div>
+            <div class="text-2xl font-bold text-gray-900">{{ value ?? '—' }}</div>
+            <div class="text-xs text-gray-500 mt-0.5">{{ label }}</div>
+        </div>
+    </div>
+    {% endmacro %}
+
+    {{ _self.stat('Active users', stats.users_active, 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197', 'bg-brand-500') }}
+    {{ _self.stat('Centres', stats.centres_active, 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5', 'bg-emerald-500') }}
+    {% if stats.members_total is not null %}
+    {{ _self.stat('Total members', stats.members_total, 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0', 'bg-violet-500') }}
+    {% endif %}
+    {% if stats.giving_month is not null %}
+    {{ _self.stat('Giving this month', 'KES ' ~ (stats.giving_month|number_format(0)), 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1', 'bg-amber-500') }}
+    {% endif %}
+    {% if stats.visitors_month is not null %}
+    {{ _self.stat('Visitors this month', stats.visitors_month, 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z', 'bg-rose-500') }}
+    {% endif %}
+    {% if stats.attendance_last is not null %}
+    {{ _self.stat('Last service attendance', stats.attendance_last, 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7', 'bg-teal-500') }}
+    {% endif %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <!-- Recent activity chart -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 class="text-sm font-semibold text-gray-700 mb-4">Activity — last 30 days</h2>
+        {% if stats.recent_activity %}
+        <div class="space-y-2">
+            {% for item in stats.recent_activity %}
+            <div class="flex items-center gap-3">
+                <div class="text-xs text-gray-500 w-24 truncate capitalize">{{ item.action|replace({'_': ' '}) }}</div>
+                <div class="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div class="bg-brand-500 h-2 rounded-full" style="width: {{ [100, (item.cnt / (stats.recent_activity[0].cnt ?? 1) * 100)|round]|min }}%"></div>
+                </div>
+                <div class="text-xs font-semibold text-gray-700 w-8 text-right">{{ item.cnt }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-gray-400 text-center py-8">No activity yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Users by role -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h2 class="text-sm font-semibold text-gray-700 mb-4">Users by role</h2>
+        {% set role_labels = {'sysadmin': 'System Admin', 'admin': 'HQ Admin', 'executive': 'Executive', 'centre_admin': 'Centre Admin', 'clerk': 'Clerk', 'volunteer': 'Volunteer', 'viewer': 'Viewer'} %}
+        {% set role_colors = {'sysadmin': 'bg-red-500', 'admin': 'bg-orange-500', 'executive': 'bg-amber-500', 'centre_admin': 'bg-brand-500', 'clerk': 'bg-emerald-500', 'volunteer': 'bg-teal-500', 'viewer': 'bg-gray-400'} %}
+        {% if stats.users_by_role %}
+        <div class="space-y-2">
+            {% for role, cnt in stats.users_by_role %}
+            <div class="flex items-center gap-3">
+                <div class="w-2.5 h-2.5 rounded-full flex-shrink-0 {{ role_colors[role] ?? 'bg-gray-400' }}"></div>
+                <div class="text-xs text-gray-600 flex-1">{{ role_labels[role] ?? role }}</div>
+                <div class="text-xs font-semibold text-gray-800">{{ cnt }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-gray-400 text-center py-8">No users found.</p>
+        {% endif %}
+    </div>
+
+    <!-- Sign-in trend -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5 lg:col-span-2">
+        <h2 class="text-sm font-semibold text-gray-700 mb-4">Sign-in trend — last 14 days</h2>
+        {% if sign_trend %}
+        <div class="flex items-end gap-1 h-16">
+            {% for row in sign_trend %}
+            <div class="flex-1 flex flex-col items-center gap-0.5" title="{{ row.day }}: {{ row.ok }} successful / {{ row.cnt }} total">
+                <div class="w-full bg-brand-500 rounded-sm opacity-80" style="height: {{ [64, (row.cnt / (sign_trend|map(r=>r.cnt)|max ?: 1) * 64)|round]|min }}px"></div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="flex justify-between mt-1 text-[10px] text-gray-400">
+            <span>{{ sign_trend|first.day|slice(5) }}</span>
+            <span>{{ sign_trend|last.day|slice(5) }}</span>
+        </div>
+        {% else %}
+        <p class="text-sm text-gray-400 text-center py-8">No sign-in data.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick actions -->
+{% if is_granted('ROLE_ADMIN') %}
+<div class="mt-6">
+    <h2 class="text-sm font-semibold text-gray-700 mb-3">Quick actions</h2>
+    <div class="flex flex-wrap gap-2">
+        <a href="{{ path('admin_users_new') }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-brand-50 text-brand-700 hover:bg-brand-100 rounded-lg text-sm font-medium transition-colors">
+            + Add user
+        </a>
+        <a href="{{ path('admin_centres_new') }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-sm font-medium transition-colors">
+            + Add centre
+        </a>
+        <a href="{{ path('insights_reports_ministry') }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-violet-50 text-violet-700 hover:bg-violet-100 rounded-lg text-sm font-medium transition-colors">
+            Ministry report
+        </a>
+        <a href="{{ path('admin_audit_index') }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 rounded-lg text-sm font-medium transition-colors">
+            Audit trail
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

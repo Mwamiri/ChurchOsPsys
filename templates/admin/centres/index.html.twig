@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+{% block title %}Centres{% endblock %}
+{% block page_title %}Centres{% endblock %}
+{% set church_name = null %}
+
+{% block topbar_actions %}
+<a href="{{ path('admin_centres_new') }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-brand-600 text-white hover:bg-brand-700 rounded-lg text-sm font-medium">
+    + New centre
+</a>
+{% endblock %}
+
+{% block content %}
+{% macro centre_row(centre, depth) %}
+<tr class="hover:bg-gray-50">
+    <td class="px-4 py-3">
+        <div class="flex items-center gap-2" style="padding-left: {{ depth * 20 }}px">
+            {% if depth > 0 %}<span class="text-gray-300">└</span>{% endif %}
+            <div>
+                <div class="font-medium text-gray-900">{{ centre.name }}</div>
+                {% if centre.location %}<div class="text-xs text-gray-500">{{ centre.location }}</div>{% endif %}
+            </div>
+        </div>
+    </td>
+    <td class="px-4 py-3 text-gray-500 text-sm hidden sm:table-cell">{{ centre.code ?? '—' }}</td>
+    <td class="px-4 py-3 text-gray-500 text-sm hidden md:table-cell">{{ centre.email ?? centre.phone ?? '—' }}</td>
+    <td class="px-4 py-3">
+        <span class="inline-block px-2 py-0.5 rounded text-xs font-medium {{ centre.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
+            {{ centre.active ? 'Active' : 'Inactive' }}
+        </span>
+    </td>
+    <td class="px-4 py-3 text-right">
+        <div class="flex items-center justify-end gap-2" x-data>
+            <a href="{{ path('admin_centres_edit', {id: centre.id}) }}" class="text-xs text-brand-600 hover:text-brand-700 font-medium">Edit</a>
+            <form method="post" action="{{ path('admin_centres_toggle', {id: centre.id}) }}" class="inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('toggle_centre_' ~ centre.id) }}">
+                <button type="submit" class="text-xs text-gray-500 hover:text-gray-700">{{ centre.active ? 'Deactivate' : 'Activate' }}</button>
+            </form>
+            <form method="post" action="{{ path('admin_centres_delete', {id: centre.id}) }}" class="inline" @submit="return confirm('Delete this centre?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete_centre_' ~ centre.id) }}">
+                <button type="submit" class="text-xs text-red-500 hover:text-red-700">Delete</button>
+            </form>
+        </div>
+    </td>
+</tr>
+{% for child in centre.children %}
+    {{ _self.centre_row(child, depth + 1) }}
+{% endfor %}
+{% endmacro %}
+
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Name</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase hidden sm:table-cell">Code</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase hidden md:table-cell">Contact</th>
+                <th class="text-left px-4 py-3 text-xs font-semibold text-gray-600 uppercase">Status</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+        {% for root in tree %}
+            {{ _self.centre_row(root, 0) }}
+        {% else %}
+            <tr><td colspan="5" class="px-4 py-10 text-center text-sm text-gray-400">No centres yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

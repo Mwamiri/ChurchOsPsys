@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" x-data="{ sidebarOpen: window.innerWidth >= 1024 }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ChurchOS{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%232563eb%22/><text y=%22.9em%22 x=%22.1em%22 font-size=%2272%22>⛪</text></svg>">
+    <script src="https://cdn.tailwindcss.com/3.4.1"></script>
+    <script>tailwind.config={theme:{extend:{colors:{brand:{'50':'#eff6ff','100':'#dbeafe','200':'#bfdbfe','300':'#93c5fd','400':'#60a5fa','500':'#3b82f6','600':'#2563eb','700':'#1d4ed8','800':'#1e40af','900':'#1e3a8a'}}}}}</script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none!important}</style>
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen antialiased">
+
+{% if app.user %}
+<div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="fixed inset-y-0 left-0 z-50 w-64 bg-brand-900 text-white flex flex-col transition-transform duration-200 lg:static lg:translate-x-0"
+           :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+        <div class="flex items-center gap-3 px-5 py-4 border-b border-brand-800">
+            <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center font-bold text-sm">C</div>
+            <div>
+                <div class="text-sm font-semibold leading-tight">{{ church_name ?? 'ChurchOS' }}</div>
+                <div class="text-xs text-brand-300">P Edition</div>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto text-sm">
+            {% macro navlink(label, icon_path, route, current_path) %}
+                <a href="{{ path(route) }}"
+                   class="flex items-center gap-3 px-3 py-2 rounded-lg {{ app.request.pathInfo starts with current_path ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ icon_path }}"/>
+                    </svg>
+                    {{ label }}
+                </a>
+            {% endmacro %}
+
+            <a href="{{ path('insights_dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ app.request.pathInfo == '/dashboard' ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Dashboard
+            </a>
+
+            <div class="pt-4">
+                <p class="px-3 pb-1 text-[10px] font-semibold text-brand-400 uppercase tracking-widest">Insights</p>
+                <a href="{{ path('insights_reports_index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/reports' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Reports
+                </a>
+            </div>
+
+            {% if is_granted('ROLE_CENTRE_ADMIN') %}
+            <div class="pt-4">
+                <p class="px-3 pb-1 text-[10px] font-semibold text-brand-400 uppercase tracking-widest">Administration</p>
+                <a href="{{ path('admin_users_index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/admin/users' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    Users
+                </a>
+                {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('admin_centres_index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/admin/centres' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    Centres
+                </a>
+                <a href="{{ path('admin_settings_index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/admin/settings' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Settings
+                </a>
+                <a href="{{ path('admin_audit_index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/admin/audit' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    Audit trail
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </nav>
+
+        <div class="px-4 py-3 border-t border-brand-800">
+            <div class="text-sm font-medium">{{ app.user.name }}</div>
+            <div class="text-xs text-brand-400">{{ app.user.roleLabel }}</div>
+            <a href="{{ path('app_logout') }}" class="mt-1 text-xs text-brand-400 hover:text-white">Sign out →</a>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-auto">
+        <header class="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 sticky top-0 z-40">
+            <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 rounded text-gray-500 hover:bg-gray-100">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <h1 class="flex-1 text-base font-semibold text-gray-800">{% block page_title '' %}</h1>
+            {% block topbar_actions %}{% endblock %}
+        </header>
+
+        <div class="px-6 pt-4 space-y-2">
+            {% for type, messages in app.flashes(['success','error','warning','info']) %}
+                {% for msg in messages %}
+                    <div x-data x-init="setTimeout(()=>$el.remove(),5000)"
+                         class="rounded-lg px-4 py-3 text-sm font-medium border
+                         {{ type == 'success' ? 'bg-green-50 text-green-800 border-green-200' }}
+                         {{ type == 'error'   ? 'bg-red-50   text-red-800   border-red-200' }}
+                         {{ type == 'warning' ? 'bg-yellow-50 text-yellow-800 border-yellow-200' }}
+                         {{ type == 'info'    ? 'bg-blue-50  text-blue-800  border-blue-200' }}">{{ msg }}</div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+
+        <main class="flex-1 px-6 py-4">{% block content %}{% endblock %}</main>
+
+        <footer class="text-center text-xs text-gray-400 py-3 border-t border-gray-100">
+            ChurchOS P Edition · Symfony · &copy; {{ 'now'|date('Y') }} Mwamiri Computers Ltd
+        </footer>
+    </div>
+</div>
+<div x-show="sidebarOpen" x-cloak @click="sidebarOpen=false" class="fixed inset-0 bg-black/50 z-40 lg:hidden"></div>
+
+{% else %}
+    {% block content %}{% endblock %}
+{% endif %}
+
+{% block body_scripts %}{% endblock %}
+</body>
+</html>
