@@ -1,0 +1,27 @@
+{% extends 'install/_layout.html.twig' %}
+{% block title %}Database — Install{% endblock %}
+{% set current_step = 2 %}
+
+{% block content %}
+<form method="post" class="bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div class="px-6 py-5 border-b border-gray-100">
+        <h1 class="text-lg font-semibold text-gray-800"><i class="bi bi-database text-blue-600 mr-2"></i>Step 2 — Database connection</h1>
+    </div>
+    <div class="px-6 py-5 space-y-4">
+        {% if error %}
+        <div class="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 flex items-start gap-2">
+            <i class="bi bi-exclamation-triangle flex-shrink-0 mt-0.5"></i>{{ error }}
+        </div>
+        {% endif %}
+        <div><label class="form-label">Database host</label><input type="text" name="db_host" value="{{ db_host }}" class="input-field" required placeholder="127.0.0.1"></div>
+        <div><label class="form-label">Database name</label><input type="text" name="db_name" value="{{ db_name }}" class="input-field" required placeholder="churchsym"></div>
+        <div><label class="form-label">Username</label><input type="text" name="db_user" value="{{ db_user }}" class="input-field" required placeholder="root"></div>
+        <div><label class="form-label">Password</label><input type="password" name="db_pass" class="input-field" placeholder="(leave blank if none)"></div>
+        <p class="text-xs text-gray-400">Create the database in phpMyAdmin first, then enter its details here.</p>
+    </div>
+    <div class="px-6 py-4 border-t border-gray-100 flex justify-between">
+        <a href="{{ path('install_index') }}" class="btn-ghost"><i class="bi bi-arrow-left"></i> Back</a>
+        <button type="submit" class="btn-primary">Test & Continue <i class="bi bi-arrow-right"></i></button>
+    </div>
+</form>
+{% endblock %}

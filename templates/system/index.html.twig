@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+{% block title %}System — ChurchOS{% endblock %}
+{% block page_title %}System{% endblock %}
+{% block page_subtitle %}ChurchOS P Edition · Symfony 7{% endblock %}
+
+{% block topbar_actions %}
+{% if is_granted('ROLE_SYSADMIN') %}
+<form method="post" action="{{ path('system_repair') }}"
+      onsubmit="this.querySelector('button').disabled=true;this.querySelector('button').textContent='Running…'">
+    <button type="submit" class="btn-secondary text-sm"><i class="bi bi-magic me-1"></i>Run self-repair</button>
+</form>
+{% endif %}
+{% endblock %}
+
+{% block body %}
+{# ── Sub-nav ── #}
+{% include 'system/_nav.html.twig' with {active: 'index'} %}
+
+<div class="grid gap-6 lg:grid-cols-5">
+    <div class="space-y-6 lg:col-span-2">
+        <div class="card p-5 space-y-3">
+            <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                <i class="bi bi-heart-pulse text-brand-600 mr-1"></i>Quick stats
+            </h2>
+            <dl class="text-sm space-y-2">
+                <div class="flex justify-between">
+                    <dt class="text-slate-500">Free disk</dt>
+                    <dd class="font-medium">{{ disk ? (disk / 1073741824)|number_format(1) ~ ' GB' : 'n/a' }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-slate-500">PHP version</dt>
+                    <dd class="font-medium">{{ constant('PHP_VERSION') }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-slate-500">Health checks</dt>
+                    <dd>
+                        {% if failed > 0 %}
+                        <span class="px-2 py-0.5 text-xs rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">{{ failed }} need attention</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">All good</span>
+                        {% endif %}
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="card p-5">
+            <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
+                <i class="bi bi-clock text-brand-600 mr-1"></i>Scheduled tasks (cron)
+            </h2>
+            <p class="text-xs text-slate-500 mb-2">In cPanel → Cron Jobs, run once a day:</p>
+            <code class="block bg-slate-100 dark:bg-slate-800 rounded p-2 text-xs break-all select-all">
+                php bin/console app:health-check
+            </code>
+        </div>
+    </div>
+
+    <div class="card overflow-hidden lg:col-span-3">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-slate-700">
+            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                <i class="bi bi-heart-pulse text-brand-600 mr-1"></i>Health checks
+            </span>
+            <span class="px-2 py-0.5 text-xs rounded-full {{ failed > 0 ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' }}">
+                {{ failed > 0 ? failed ~ ' need attention' : 'All good' }}
+            </span>
+        </div>
+        <table class="min-w-full text-sm divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody>
+            {% set group = null %}
+            {% for c in checks %}
+                {% if c.group != group %}
+                    {% set group = c.group %}
+                    <tr>
+                        <td colspan="3" class="bg-slate-50 dark:bg-slate-800/60 px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide">{{ group }}</td>
+                    </tr>
+                {% endif %}
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                    <td class="w-10 px-4 py-2.5">
+                        <i class="bi {{ c.ok ? 'bi-check-circle-fill text-emerald-600' : 'bi-exclamation-triangle-fill text-amber-500' }}"></i>
+                    </td>
+                    <td class="py-2.5 font-medium text-slate-700 dark:text-slate-200">{{ c.name }}</td>
+                    <td class="px-4 py-2.5 text-xs text-slate-500">{{ c.info }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

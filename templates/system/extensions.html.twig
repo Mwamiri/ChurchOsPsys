@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+{% block title %}Extensions — System — ChurchOS{% endblock %}
+{% block page_title %}Extensions{% endblock %}
+{% block page_subtitle %}Plugins that add lists, pages, dashboard cards, permissions, settings, and behaviour — installed without a system update.{% endblock %}
+
+{% block body %}
+{% include 'system/_nav.html.twig' with {active: 'extensions'} %}
+
+{% if pending %}
+<div class="card mb-6 border-2 {{ pending.problems ? 'border-red-300 dark:border-red-800' : 'border-brand-300 dark:border-brand-700' }} p-6 space-y-4">
+    <div class="flex items-center gap-3">
+        <i class="bi bi-box-seam text-2xl text-brand-600"></i>
+        <div>
+            <div class="font-semibold text-slate-800 dark:text-white">{{ pending.manifest.name ?? 'Unknown package' }}
+                <span class="font-mono text-sm text-slate-400 ml-1">{{ pending.manifest.version ?? '' }}</span>
+            </div>
+            <span class="px-2 py-0.5 text-xs rounded-full {{ pending.installed ? 'bg-amber-100 text-amber-700' : 'bg-brand-100 text-brand-700' }}">
+                {{ pending.installed ? 'Update from ' ~ pending.installed : 'New' }}
+            </span>
+        </div>
+    </div>
+    <div class="flex gap-3">
+        <form method="post" action="{{ path('system_extensions') }}">
+            <button class="btn-ghost text-sm">Cancel</button>
+        </form>
+        {% if not pending.problems %}
+        <form method="post" action="{{ path('system_extensions') }}">
+            <button class="btn-primary text-sm"><i class="bi bi-download me-1"></i>{{ pending.installed ? 'Update' : 'Install' }}</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="grid gap-6 lg:grid-cols-3">
+    <div class="space-y-4 lg:col-span-2">
+        {% for id, m in installed %}
+        <div class="card p-5 flex flex-wrap items-start gap-4">
+            <span class="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-50 dark:bg-brand-950 text-2xl text-brand-700 dark:text-brand-200">
+                <i class="bi bi-{{ m.icon ?? 'puzzle' }}"></i>
+            </span>
+            <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-semibold text-slate-800 dark:text-white">{{ m.name }}</span>
+                    <span class="font-mono text-xs text-slate-400">{{ m.version }}</span>
+                    <span class="px-2 py-0.5 text-xs rounded-full {{ m.enabled ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500' }}">
+                        {{ m.enabled ? 'On' : 'Off' }}
+                    </span>
+                </div>
+                <p class="mt-1 text-sm text-slate-500">{{ m.description ?? '' }}</p>
+                <p class="mt-1 text-xs text-slate-400">Installed {{ m.installed_at ? m.installed_at|date('d M Y') : '—' }}</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="card p-12 text-center text-slate-400">
+            <i class="bi bi-puzzle text-4xl block mb-2"></i>
+            <p>No extensions installed yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="space-y-4">
+        {% if is_granted('ROLE_SYSADMIN') %}
+        <form method="post" enctype="multipart/form-data" action="{{ path('system_extensions_upload') }}" class="card p-5 space-y-3">
+            <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Add an extension</h2>
+            <input type="file" name="package" accept=".zip" required class="input-field text-sm">
+            <p class="text-xs text-slate-400">A .zip with a module.json inside. It is checked before anything is installed.</p>
+            <button type="submit" class="btn-primary text-sm w-full justify-center">
+                <i class="bi bi-upload"></i> Upload and check
+            </button>
+        </form>
+        {% endif %}
+
+        <div class="card p-5 space-y-2">
+            <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-200">For developers</h2>
+            <p class="text-xs text-slate-500">Create an extension bundle with a <code>module.json</code> manifest and a .zip containing your Controllers, templates, and migrations.</p>
+            <p class="text-xs text-slate-500 mt-1">Upload the .zip here. It is validated before anything is installed; a backup is taken first.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

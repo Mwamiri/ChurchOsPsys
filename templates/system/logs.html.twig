@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+{% block title %}Audit Logs — System — ChurchOS{% endblock %}
+{% block page_title %}Audit Logs{% endblock %}
+{% block page_subtitle %}{{ total }} total entries — tamper-evident SHA-256 hash chain{% endblock %}
+
+{% block body %}
+{% include 'system/_nav.html.twig' with {active: 'logs'} %}
+
+<div class="card overflow-hidden">
+    <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700 text-sm">
+        <thead class="bg-slate-50 dark:bg-slate-800/60">
+            <tr>
+                <th class="px-4 py-3 text-left font-medium text-slate-500">When</th>
+                <th class="px-4 py-3 text-left font-medium text-slate-500">User</th>
+                <th class="px-4 py-3 text-left font-medium text-slate-500">Action</th>
+                <th class="px-4 py-3 text-left font-medium text-slate-500">Entity</th>
+                <th class="px-4 py-3 text-left font-medium text-slate-500">IP</th>
+                <th class="px-4 py-3 text-left font-medium text-slate-500 hidden lg:table-cell">Hash</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            {% for r in rows %}
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                <td class="px-4 py-2.5 text-slate-400 whitespace-nowrap">{{ r.created_at ? r.created_at|date('d M H:i') : '—' }}</td>
+                <td class="px-4 py-2.5 font-medium">{{ r.user_email ?? r.user_id ?? '—' }}</td>
+                <td class="px-4 py-2.5">
+                    <span class="px-2 py-0.5 text-xs rounded-full
+                        {{ r.action in ['create','insert'] ? 'bg-green-50 text-green-700' :
+                           r.action in ['delete','destroy'] ? 'bg-red-50 text-red-700' :
+                           'bg-blue-50 text-blue-700' }}">
+                        {{ r.action }}
+                    </span>
+                </td>
+                <td class="px-4 py-2.5 text-slate-500">{{ r.entity_type ?? '—' }} {% if r.entity_id %}#{{ r.entity_id }}{% endif %}</td>
+                <td class="px-4 py-2.5 text-slate-400 font-mono text-xs">{{ r.ip_address ?? '—' }}</td>
+                <td class="px-4 py-2.5 text-slate-300 font-mono text-xs hidden lg:table-cell">{{ r.hash ? r.hash|slice(0,12) ~ '…' : '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">No audit entries.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if pages > 1 %}
+<div class="mt-4 flex justify-center gap-1">
+    {% for p in 1..pages %}
+    <a href="{{ path('system_logs', {page: p}) }}"
+       class="px-3 py-1.5 rounded text-sm {{ p == page ? 'bg-brand-600 text-white' : 'btn-secondary' }}">
+        {{ p }}
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

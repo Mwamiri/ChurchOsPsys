@@ -1,0 +1,31 @@
+{% extends 'install/_layout.html.twig' %}
+{% block title %}Requirements — Install{% endblock %}
+{% set current_step = 1 %}
+
+{% block content %}
+<div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div class="px-6 py-5 border-b border-gray-100">
+        <h1 class="text-lg font-semibold text-gray-800"><i class="bi bi-clipboard-check text-blue-600 mr-2"></i>Welcome — Let's check requirements</h1>
+    </div>
+    <div class="divide-y divide-gray-100">
+        {% for r in requirements %}
+        <div class="flex items-center gap-4 px-6 py-3">
+            <i class="bi {{ r.ok ? 'bi-check-circle-fill text-emerald-600' : 'bi-x-circle-fill text-red-500' }} text-lg flex-shrink-0"></i>
+            <span class="flex-1 text-sm font-medium text-gray-700">{{ r.name }}</span>
+            <span class="text-xs text-gray-400">{{ r.info }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="px-6 py-4 border-t border-gray-100 flex justify-end">
+        {% set allOk = true %}
+        {% for r in requirements %}{% if not r.ok %}{% set allOk = false %}{% endif %}{% endfor %}
+        {% if allOk %}
+        <a href="{{ path('install_database') }}" class="btn-primary">
+            Next: Database <i class="bi bi-arrow-right"></i>
+        </a>
+        {% else %}
+        <p class="text-sm text-red-600">Please fix the requirements above before continuing.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,186 +1,475 @@
 <!DOCTYPE html>
-<html lang="en" x-data="{ sidebarOpen: window.innerWidth >= 1024 }">
+<html lang="en" class="" x-data="{ nav: false }" @keydown.escape.window="nav = false">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ChurchOS{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1e40af">
+    <title>{% block title %}ChurchOS{% endblock %} · {{ church_name ?? 'ChurchOS' }}</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%232563eb%22/><text y=%22.9em%22 x=%22.1em%22 font-size=%2272%22>⛪</text></svg>">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://cdn.tailwindcss.com/3.4.1"></script>
-    <script>tailwind.config={theme:{extend:{colors:{brand:{'50':'#eff6ff','100':'#dbeafe','200':'#bfdbfe','300':'#93c5fd','400':'#60a5fa','500':'#3b82f6','600':'#2563eb','700':'#1d4ed8','800':'#1e40af','900':'#1e3a8a'}}}}}</script>
+    <script>
+    tailwind.config={darkMode:'class',theme:{extend:{colors:{brand:{'50':'#eff6ff','100':'#dbeafe','200':'#bfdbfe','300':'#93c5fd','400':'#60a5fa','500':'#3b82f6','600':'#2563eb','700':'#1d4ed8','800':'#1e40af','900':'#1e3a8a','950':'#172554'}}}}}
+    </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    {# Apply saved theme BEFORE paint to avoid flash #}
+    <script>
+    try{
+      var h=document.documentElement,t=localStorage.getItem('chosTheme'),s=localStorage.getItem('chosTextSize'),c=localStorage.getItem('chosContrast');
+      if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches))h.classList.add('dark');
+      if(s)h.style.fontSize=s;
+      if(c)h.dataset.contrast=c;
+    }catch(e){}
+    </script>
     <style>
     [x-cloak]{display:none!important}
-    .card{background:#fff;border-radius:0.75rem;box-shadow:0 1px 3px 0 rgba(0,0,0,.08),0 1px 2px -1px rgba(0,0,0,.06)}
-    .btn-primary{display:inline-flex;align-items:center;gap:0.375rem;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.875rem;font-weight:500;background:#2563eb;color:#fff;cursor:pointer;border:none;transition:background 150ms}
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar{width:5px;height:5px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:9px}
+    .dark ::-webkit-scrollbar-thumb{background:#475569}
+
+    /* ── Cards ── */
+    .card{background:#fff;border-radius:.75rem;box-shadow:0 1px 3px 0 rgba(0,0,0,.08),0 1px 2px -1px rgba(0,0,0,.06)}
+    .dark .card{background:#1e293b;box-shadow:0 1px 3px 0 rgba(0,0,0,.4)}
+
+    /* ── Buttons ── */
+    .btn-primary{display:inline-flex;align-items:center;gap:.375rem;padding:.5rem 1rem;border-radius:.5rem;font-size:.875rem;font-weight:500;background:#2563eb;color:#fff;cursor:pointer;border:none;transition:background 150ms;text-decoration:none}
     .btn-primary:hover{background:#1d4ed8}
-    .btn-secondary{display:inline-flex;align-items:center;gap:0.375rem;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.875rem;font-weight:500;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;cursor:pointer;transition:background 150ms}
+    .btn-secondary{display:inline-flex;align-items:center;gap:.375rem;padding:.5rem 1rem;border-radius:.5rem;font-size:.875rem;font-weight:500;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;cursor:pointer;transition:background 150ms;text-decoration:none}
     .btn-secondary:hover{background:#e5e7eb}
-    .btn-ghost{display:inline-flex;align-items:center;gap:0.375rem;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.875rem;font-weight:500;color:#6b7280;cursor:pointer;transition:color 150ms}
+    .dark .btn-secondary{background:#1e293b;color:#cbd5e1;border-color:#334155}
+    .dark .btn-secondary:hover{background:#334155}
+    .btn-ghost{display:inline-flex;align-items:center;gap:.375rem;padding:.5rem 1rem;border-radius:.5rem;font-size:.875rem;font-weight:500;color:#6b7280;cursor:pointer;background:transparent;border:none;text-decoration:none;transition:all 150ms}
     .btn-ghost:hover{color:#111827;background:#f9fafb}
-    .btn-danger{display:inline-flex;align-items:center;gap:0.375rem;padding:0.5rem 1rem;border-radius:0.5rem;font-size:0.875rem;font-weight:500;background:#ef4444;color:#fff;cursor:pointer;border:none;transition:background 150ms}
+    .dark .btn-ghost{color:#94a3b8}
+    .dark .btn-ghost:hover{color:#f1f5f9;background:#1e293b}
+    .btn-icon{padding:.5rem!important;border-radius:.5rem}
+    .btn-danger{display:inline-flex;align-items:center;gap:.375rem;padding:.5rem 1rem;border-radius:.5rem;font-size:.875rem;font-weight:500;background:#ef4444;color:#fff;cursor:pointer;border:none;transition:background 150ms;text-decoration:none}
     .btn-danger:hover{background:#dc2626}
-    .input-field{width:100%;border:1px solid #d1d5db;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.875rem;line-height:1.25rem;color:#111827;outline:none;transition:border-color 150ms,box-shadow 150ms}
+
+    /* ── Form inputs ── */
+    .input-field{width:100%;border:1px solid #d1d5db;border-radius:.5rem;padding:.5rem .75rem;font-size:.875rem;color:#111827;outline:none;transition:border-color 150ms,box-shadow 150ms;background:#fff}
     .input-field:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
     textarea.input-field{resize:vertical}
-    .form-label{display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:0.25rem}
+    .dark .input-field{background:#0f172a;border-color:#334155;color:#f1f5f9}
+    .dark .input-field:focus{border-color:#3b82f6}
+    .form-label{display:block;font-size:.875rem;font-weight:500;color:#374151;margin-bottom:.25rem}
+    .dark .form-label{color:#cbd5e1}
+
+    /* ── Sidebar ── */
+    .sidebar{background:#0f172a}
+    .sidebar .nav-link{display:flex;align-items:center;gap:.75rem;padding:.5rem .75rem;border-radius:.5rem;font-size:.875rem;color:#94a3b8;text-decoration:none;transition:all 150ms}
+    .sidebar .nav-link:hover{background:#1e293b;color:#f1f5f9}
+    .sidebar .nav-link.active{background:#2563eb;color:#fff}
+    .sidebar .nav-link.active i{color:#fff}
+    .sidebar .nav-heading{padding:.75rem .75rem .25rem;font-size:.625rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#475569}
+
+    /* ── Topbar ── */
+    .topbar{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid #e2e8f0}
+    .dark .topbar{background:rgba(15,23,42,.92);border-bottom-color:#1e293b}
+
+    /* ── Dropdown menu ── */
+    .dropdown-menu{position:absolute;right:0;top:calc(100% + .375rem);z-index:50;min-width:14rem;background:#fff;border:1px solid #e2e8f0;border-radius:.75rem;box-shadow:0 10px 25px -5px rgba(0,0,0,.1),0 8px 10px -6px rgba(0,0,0,.05);padding:.375rem;overflow:hidden}
+    .dark .dropdown-menu{background:#1e293b;border-color:#334155}
+    .dropdown-item{display:flex;align-items:center;gap:.625rem;padding:.5rem .75rem;border-radius:.5rem;font-size:.875rem;color:#374151;text-decoration:none;cursor:pointer;background:transparent;border:none;width:100%;text-align:left;transition:background 120ms}
+    .dropdown-item:hover{background:#f1f5f9}
+    .dark .dropdown-item{color:#cbd5e1}
+    .dark .dropdown-item:hover{background:#0f172a}
+    .dropdown-sep{margin:.25rem 0;border:none;border-top:1px solid #e2e8f0}
+    .dark .dropdown-sep{border-top-color:#334155}
+
+    /* ── Flash alerts ── */
+    .alert-success{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+    .alert-error{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+    .alert-warning{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+    .alert-info{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe}
+    .dark .alert-success{background:#14532d;color:#bbf7d0;border-color:#166534}
+    .dark .alert-error{background:#450a0a;color:#fecaca;border-color:#991b1b}
+    .dark .alert-warning{background:#451a03;color:#fde68a;border-color:#92400e}
+    .dark .alert-info{background:#172554;color:#bfdbfe;border-color:#1e40af}
+
+    /* ── Bottom tab bar (mobile) ── */
+    .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:40;background:#fff;border-top:1px solid #e2e8f0;padding-bottom:env(safe-area-inset-bottom)}
+    .dark .tabbar{background:#0f172a;border-top-color:#1e293b}
+    .tabbar a,.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;padding:.6rem .25rem;font-size:.625rem;font-weight:500;color:#6b7280;text-decoration:none;border:none;background:transparent;cursor:pointer;transition:color 150ms}
+    .tabbar a:hover,.tabbar button:hover,.tabbar a.active,.tabbar button.active{color:#2563eb}
+    .tabbar a i,.tabbar button i{font-size:1.25rem}
+    @media(min-width:1024px){.tabbar{display:none}}
+
+    /* ── Avatar ── */
+    .avatar{display:inline-flex;align-items:center;justify-content:center;border-radius:9999px;font-weight:700;background:#dbeafe;color:#1e40af;flex-shrink:0}
+    .dark .avatar{background:#1e3a8a;color:#bfdbfe}
+
+    /* ── Breadcrumbs ── */
+    .breadcrumb{display:flex;flex-wrap:wrap;align-items:center;gap:.375rem;font-size:.75rem;font-weight:500;color:#64748b;margin-bottom:.5rem}
+    .breadcrumb a{color:#64748b;text-decoration:none}
+    .breadcrumb a:hover{color:#2563eb}
+
+    /* ── High contrast ── */
+    [data-contrast="high"] .card{border:2px solid #111}
+    [data-contrast="high"] .dark .card{border:2px solid #fff}
+    [data-contrast="high"] .input-field{border-width:2px}
+
+    /* ── Utilities ── */
     .line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .no-print{} @media print{.no-print{display:none!important}}
     </style>
     {% block head_extra %}{% endblock %}
 </head>
-<body class="bg-gray-50 text-gray-900 min-h-screen antialiased">
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased pb-16 lg:pb-0">
+
+{# ── Offline banner ── #}
+<div id="offline-banner" class="fixed bottom-20 left-1/2 z-[60] hidden -translate-x-1/2 rounded-full bg-slate-900 px-4 py-2 text-sm whitespace-nowrap text-white shadow-lg lg:bottom-4">
+    <i class="bi bi-wifi-off"></i> Offline — showing saved pages
+</div>
 
 {% if app.user %}
-<div class="flex h-screen overflow-hidden">
-    <!-- Sidebar -->
-    <aside class="fixed inset-y-0 left-0 z-50 w-64 bg-brand-900 text-white flex flex-col transition-transform duration-200 lg:static lg:translate-x-0"
-           :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
-        <div class="flex items-center gap-3 px-5 py-4 border-b border-brand-800">
-            <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center font-bold text-sm">C</div>
-            <div>
-                <div class="text-sm font-semibold leading-tight">{{ church_name ?? 'ChurchOS' }}</div>
-                <div class="text-xs text-brand-300">P Edition</div>
+<div class="flex min-h-screen">
+
+{# ══════════════════════════════════════════════════════════
+   SIDEBAR
+   ══════════════════════════════════════════════════════════ #}
+<div x-cloak x-show="nav" x-transition.opacity @click="nav = false"
+     class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden"></div>
+
+<aside class="sidebar fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col transition-transform duration-200 lg:static lg:translate-x-0"
+       :class="nav && 'translate-x-0'">
+
+    <div class="flex items-center justify-between border-b border-slate-800 px-4 py-4">
+        <a href="{{ path('insights_dashboard') }}" class="flex items-center gap-3 min-w-0 no-underline">
+            <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-600 text-white font-bold text-lg">C</span>
+            <span class="min-w-0 leading-tight">
+                <span class="block truncate font-semibold text-white text-sm">{{ church_name ?? 'ChurchOS' }}</span>
+                <span class="block truncate text-xs text-slate-400">P Edition</span>
+            </span>
+        </a>
+        <button type="button" class="btn-ghost btn-icon lg:hidden text-slate-400" @click="nav = false" aria-label="Close menu">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
+
+        <a href="{{ path('insights_dashboard') }}"
+           class="nav-link {{ app.request.pathInfo == '/dashboard' ? 'active' : '' }}">
+            <i class="bi bi-house"></i><span>Dashboard</span>
+        </a>
+        <a href="{{ path('insights_reports_index') }}"
+           class="nav-link {{ '/reports' in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-bar-chart-line"></i><span>Reports</span>
+        </a>
+
+        {# ── Ministry ── #}
+        <div class="nav-heading mt-2">Ministry</div>
+        <div x-data="{ open: {{ '/ministry' in app.request.pathInfo ? 'true' : 'false' }} }">
+            <button @click="open = !open"
+                    class="nav-link w-full justify-between">
+                <span class="flex items-center gap-3"><i class="bi bi-people"></i>CRM Areas</span>
+                <i class="bi bi-chevron-down text-xs transition-transform" :class="open && 'rotate-180'"></i>
+            </button>
+            <div x-show="open" x-cloak class="pl-4 mt-0.5 space-y-0.5">
+                {% set areas = {members:'Members',leaders:'Leaders',new_believers:'New Believers',visitors:'Visitors',households:'Households',groups:'Groups',partners:'Partners',missions:'Missions',diaspora:'Diaspora',business_forum:'Business Forum',church_assets:'Assets'} %}
+                {% for areaKey, areaLabel in areas %}
+                <a href="{{ path('ministry_list', {area: areaKey}) }}"
+                   class="nav-link text-xs {{ ('/ministry/'~areaKey) in app.request.pathInfo ? 'active' : '' }}">
+                    <i class="bi bi-dot"></i>{{ areaLabel }}
+                </a>
+                {% endfor %}
             </div>
         </div>
 
-        <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto text-sm">
-            <a href="{{ path('insights_dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ app.request.pathInfo == '/dashboard' ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
-                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                Dashboard
-            </a>
+        {# ── Operations ── #}
+        <div class="nav-heading mt-2">Operations</div>
+        <a href="{{ path('attendance_home') }}"
+           class="nav-link {{ '/attendance' in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-clipboard-check"></i><span>Attendance</span>
+        </a>
+        <a href="{{ path('giving_home') }}"
+           class="nav-link {{ '/giving' in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-cash-coin"></i><span>Giving</span>
+        </a>
+        <a href="{{ path('people_groups') }}"
+           class="nav-link {{ '/people' in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-diagram-3"></i><span>Groups & People</span>
+        </a>
+        <a href="{{ path('announcements_index') }}"
+           class="nav-link {{ '/announcements' in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-megaphone"></i><span>Announcements</span>
+        </a>
+        <a href="{{ path('calendar_home') }}"
+           class="nav-link {{ '/calendar' in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-calendar-event"></i><span>Calendar</span>
+        </a>
+        {% if is_granted('ROLE_CLERK') %}
+        <a href="{{ path('sms_index') }}"
+           class="nav-link {{ '/sms' in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-chat-dots"></i><span>SMS</span>
+        </a>
+        <a href="{{ path('forms_index') }}"
+           class="nav-link {{ '/admin/forms' in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-ui-checks-grid"></i><span>Forms</span>
+        </a>
+        {% endif %}
 
-            <div class="pt-4">
-                <p class="px-3 pb-1 text-[10px] font-semibold text-brand-400 uppercase tracking-widest">Insights</p>
-                <a href="{{ path('insights_reports_index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/reports' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    Reports
-                </a>
+        {# ── Administration ── #}
+        {% if is_granted('ROLE_CENTRE_ADMIN') %}
+        <div class="nav-heading mt-2">Administration</div>
+        <a href="{{ path('admin_users_index') }}"
+           class="nav-link {{ '/admin/users' in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-person-badge"></i><span>Users</span>
+        </a>
+        {% if is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('admin_centres_index') }}"
+           class="nav-link {{ '/admin/centres' in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-buildings"></i><span>Centres</span>
+        </a>
+        <a href="{{ path('admin_settings_index') }}"
+           class="nav-link {{ '/admin/settings' in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-gear"></i><span>Settings</span>
+        </a>
+        <a href="{{ path('admin_audit_index') }}"
+           class="nav-link {{ '/admin/audit' in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-shield-check"></i><span>Audit trail</span>
+        </a>
+        {% endif %}
+
+        {% if is_granted('ROLE_SYSADMIN') %}
+        <div class="nav-heading mt-2">System</div>
+        <a href="{{ path('system_index') }}"
+           class="nav-link {{ '/admin/system' in app.request.pathInfo and '/extensions' not in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-speedometer2"></i><span>Health &amp; Status</span>
+        </a>
+        <a href="{{ path('system_extensions') }}"
+           class="nav-link {{ '/admin/system/extensions' in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-puzzle"></i><span>Extensions</span>
+        </a>
+        <a href="{{ path('system_signins') }}"
+           class="nav-link {{ '/admin/system/signins' in app.request.pathInfo ? 'active' : '' }}">
+            <i class="bi bi-key"></i><span>Sign-ins</span>
+        </a>
+        {% endif %}
+        {% endif %}
+    </nav>
+
+    {# Sidebar footer — user avatar + quick links #}
+    <div class="border-t border-slate-800 px-4 py-3">
+        <a href="{{ path('profile_index') }}" class="flex items-center gap-3 rounded-lg px-2 py-1.5 -mx-2 hover:bg-slate-800 transition-colors no-underline">
+            <span class="avatar size-8 text-xs shrink-0">{{ app.user.name|slice(0,1)|upper }}</span>
+            <span class="min-w-0">
+                <span class="block truncate text-sm font-medium text-white">{{ app.user.name }}</span>
+                <span class="block truncate text-xs text-slate-400">{{ app.user.roleLabel }}</span>
+            </span>
+        </a>
+        <a href="{{ path('app_logout') }}" class="mt-1 flex items-center gap-2 text-xs text-slate-500 hover:text-slate-200 px-2 transition-colors">
+            <i class="bi bi-box-arrow-right"></i> Sign out
+        </a>
+    </div>
+</aside>
+
+{# ══════════════════════════════════════════════════════════
+   MAIN AREA
+   ══════════════════════════════════════════════════════════ #}
+<div class="flex flex-1 flex-col min-w-0 overflow-auto">
+
+    {# ── Topbar ── #}
+    <header class="topbar no-print sticky top-0 z-30 flex items-center gap-2 px-3 py-2 sm:px-5">
+
+        {# Hamburger #}
+        <button type="button" class="btn-ghost btn-icon lg:hidden text-slate-500" @click="nav = true" aria-label="Open menu">
+            <i class="bi bi-list text-xl"></i>
+        </button>
+
+        {# Global search #}
+        <form action="{{ path('app_search') }}" method="get" role="search" autocomplete="off"
+              class="relative max-w-xl flex-1" x-data="{ focused: false }">
+            <i class="bi bi-search pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="search" name="q" id="global-search"
+                   class="input-field rounded-full bg-slate-100 dark:bg-slate-800 border-transparent pl-9 pr-14 text-sm focus:border-brand-400"
+                   placeholder="Search members, visitors, leaders…"
+                   value="{{ app.request.query.get('q') ?? '' }}"
+                   @focus="focused = true" @blur="focused = false">
+            <span class="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 hidden sm:inline text-xs text-slate-400 bg-slate-200 dark:bg-slate-700 rounded px-1 py-0.5">Ctrl K</span>
+        </form>
+
+        <div class="ml-auto flex items-center gap-0.5">
+
+            {# Text size controls #}
+            <div class="hidden items-center rounded-lg border border-slate-200 dark:border-slate-700 md:flex" title="Text size">
+                <button type="button" class="btn-ghost btn-icon text-xs" onclick="setTextSize('87.5%')" aria-label="Smaller text">A-</button>
+                <button type="button" class="btn-ghost btn-icon text-sm"  onclick="setTextSize('')"      aria-label="Normal text">A</button>
+                <button type="button" class="btn-ghost btn-icon text-base" onclick="setTextSize('112.5%')" aria-label="Larger text">A+</button>
             </div>
 
-            {# ── Ministry / CRM ─────────────────────────────── #}
-            <div class="pt-4" x-data="{ open: {{ '/ministry' in app.request.pathInfo ? 'true' : 'false' }} }">
-                <button @click="open=!open" class="w-full flex items-center justify-between px-3 py-2 text-brand-200 hover:text-white text-[10px] font-semibold uppercase tracking-widest">
-                    Ministry
-                    <svg class="w-3 h-3 transition-transform" :class="open?'rotate-180':''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            {# Dark mode toggle #}
+            <button type="button" class="btn-ghost btn-icon text-slate-500 dark:text-slate-400"
+                    id="theme-toggle" title="Light / dark mode">
+                <i class="bi bi-circle-half text-lg"></i>
+            </button>
+
+            {# High contrast toggle #}
+            <button type="button" class="btn-ghost btn-icon hidden sm:inline-flex text-slate-500 dark:text-slate-400"
+                    id="contrast-toggle" title="High contrast">
+                <i class="bi bi-eye text-lg"></i>
+            </button>
+
+            {# Notifications bell #}
+            <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                <button type="button" class="btn-ghost btn-icon relative text-slate-500 dark:text-slate-400"
+                        @click="open = !open" aria-label="Notifications">
+                    <i class="bi bi-bell text-lg"></i>
+                    {# Badge shown when there are pending items #}
                 </button>
-                <div x-show="open" x-cloak class="space-y-0.5">
-                    {% for area, areaCfg in {members:'Members',leaders:'Leaders',new_believers:'New Believers',visitors:'Visitors',households:'Households',groups:'Groups',partners:'Partners',missions:'Missions',diaspora:'Diaspora',business_forum:'Business Forum',church_assets:'Assets'} %}
-                    <a href="{{ path('ministry_list', {area: area}) }}"
-                       class="flex items-center gap-3 pl-6 pr-3 py-1.5 rounded-lg text-xs {{ ('/ministry/'~area) in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-300 hover:bg-brand-800 hover:text-white' }}">
-                        {{ areaCfg }}
-                    </a>
-                    {% endfor %}
+                <div x-cloak x-show="open" x-transition class="dropdown-menu w-80 max-w-[calc(100vw-1.5rem)]">
+                    <div class="border-b border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        Notifications
+                    </div>
+                    <div class="px-4 py-6 text-center text-sm text-slate-500">Nothing new.</div>
                 </div>
             </div>
 
-            {# ── Operations ─────────────────────────────────── #}
-            <div class="pt-3">
-                <p class="px-3 pb-1 text-[10px] font-semibold text-brand-400 uppercase tracking-widest">Operations</p>
-                <a href="{{ path('attendance_home') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/attendance' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2l-3 9H9l-3-9z"/></svg>
-                    Attendance
-                </a>
-                <a href="{{ path('giving_home') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/giving' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    Giving
-                </a>
-                <a href="{{ path('people_groups') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/people' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    Groups & People
-                </a>
-                <a href="{{ path('announcements_index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/announcements' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
-                    Announcements
-                </a>
-                <a href="{{ path('calendar_home') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/calendar' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    Calendar
-                </a>
-                {% if is_granted('ROLE_CLERK') %}
-                <a href="{{ path('sms_index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/sms' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
-                    SMS
-                </a>
-                <a href="{{ path('forms_index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/admin/forms' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    Forms
-                </a>
-                {% endif %}
+            {# User avatar dropdown #}
+            <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                <button type="button" class="btn-ghost px-1.5 sm:px-2 flex items-center gap-2"
+                        @click="open = !open">
+                    <span class="avatar size-8 text-xs">{{ app.user.name|slice(0,1)|upper }}</span>
+                    <span class="hidden max-w-36 truncate sm:inline text-sm font-medium">{{ app.user.name }}</span>
+                    <i class="bi bi-chevron-down hidden sm:inline text-xs text-slate-400"></i>
+                </button>
+                <div x-cloak x-show="open" x-transition class="dropdown-menu">
+                    <div class="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">{{ app.user.roleLabel }}</div>
+                    <hr class="dropdown-sep">
+                    <a href="{{ path('profile_index') }}" class="dropdown-item">
+                        <i class="bi bi-person text-slate-400"></i> My Profile
+                    </a>
+                    <a href="{{ path('profile_2fa') }}" class="dropdown-item">
+                        <i class="bi bi-shield-lock text-slate-400"></i> Two-factor login
+                    </a>
+                    <a href="{{ path('profile_password') }}" class="dropdown-item">
+                        <i class="bi bi-key text-slate-400"></i> Change Password
+                    </a>
+                    <hr class="dropdown-sep">
+                    <a href="{{ path('app_logout') }}" class="dropdown-item text-red-600 dark:text-red-400">
+                        <i class="bi bi-box-arrow-right"></i> Sign out
+                    </a>
+                </div>
             </div>
-
-            {# ── Administration ─────────────────────────── #}
-            {% if is_granted('ROLE_CENTRE_ADMIN') %}
-            <div class="pt-3">
-                <p class="px-3 pb-1 text-[10px] font-semibold text-brand-400 uppercase tracking-widest">Administration</p>
-                <a href="{{ path('admin_users_index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/admin/users' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                    Users
-                </a>
-                {% if is_granted('ROLE_ADMIN') %}
-                <a href="{{ path('admin_centres_index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/admin/centres' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    Centres
-                </a>
-                <a href="{{ path('admin_settings_index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/admin/settings' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                    Settings
-                </a>
-                <a href="{{ path('admin_audit_index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg {{ '/admin/audit' in app.request.pathInfo ? 'bg-brand-700 text-white' : 'text-brand-200 hover:bg-brand-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                    Audit trail
-                </a>
-                {% endif %}
-            </div>
-            {% endif %}
-        </nav>
-
-        <div class="px-4 py-3 border-t border-brand-800">
-            <a href="{{ path('profile_index') }}" class="block hover:bg-brand-800 rounded-lg p-1 -mx-1">
-                <div class="text-sm font-medium">{{ app.user.name }}</div>
-                <div class="text-xs text-brand-400">{{ app.user.roleLabel }}</div>
-            </a>
-            <a href="{{ path('app_logout') }}" class="mt-1 text-xs text-brand-400 hover:text-white">Sign out →</a>
         </div>
-    </aside>
+    </header>
 
-    <!-- Main content area -->
-    <div class="flex-1 flex flex-col min-w-0 overflow-auto">
-        <header class="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 sticky top-0 z-40">
-            <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 rounded text-gray-500 hover:bg-gray-100">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-            </button>
-            <h1 class="flex-1 text-base font-semibold text-gray-800">{% block page_title '' %}</h1>
-            {% block topbar_actions %}{% endblock %}
-        </header>
-
-        <div class="px-6 pt-4 space-y-2">
-            {% for type, messages in app.flashes(['success','error','warning','info']) %}
-                {% for msg in messages %}
-                    <div x-data x-init="setTimeout(()=>$el.remove(),5000)"
-                         class="rounded-lg px-4 py-3 text-sm font-medium border
-                         {{ type == 'success' ? 'bg-green-50 text-green-800 border-green-200' }}
-                         {{ type == 'error'   ? 'bg-red-50   text-red-800   border-red-200' }}
-                         {{ type == 'warning' ? 'bg-yellow-50 text-yellow-800 border-yellow-200' }}
-                         {{ type == 'info'    ? 'bg-blue-50  text-blue-800  border-blue-200' }}">{{ msg }}</div>
-                {% endfor %}
+    {# ── Flash messages ── #}
+    <div class="px-4 pt-3 space-y-2 sm:px-6">
+        {% for type, messages in app.flashes(['success','error','warning','info']) %}
+            {% for msg in messages %}
+            <div x-data x-init="setTimeout(()=>$el.remove(),5000)"
+                 class="alert-{{ type }} rounded-lg px-4 py-3 text-sm font-medium flex items-center gap-3">
+                <i class="bi bi-{{ type == 'success' ? 'check-circle' : type == 'error' ? 'x-circle' : type == 'warning' ? 'exclamation-triangle' : 'info-circle' }} text-base flex-shrink-0"></i>
+                <span class="flex-1">{{ msg }}</span>
+                <button type="button" @click="$el.closest('div').remove()" class="opacity-50 hover:opacity-100">
+                    <i class="bi bi-x text-base"></i>
+                </button>
+            </div>
             {% endfor %}
+        {% endfor %}
+    </div>
+
+    {# ── Page heading area (breadcrumbs + title + actions) ── #}
+    <div class="px-4 pt-5 sm:px-6">
+        {% if block('breadcrumbs') is defined %}
+        <nav class="breadcrumb mb-2">
+            {% block breadcrumbs %}{% endblock %}
+        </nav>
+        {% endif %}
+        <div class="mb-4 flex flex-wrap items-end justify-between gap-4">
+            <div class="min-w-0">
+                <h1 class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+                    {% block page_title '' %}
+                </h1>
+                {% if block('page_subtitle') is defined %}
+                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{% block page_subtitle '' %}</p>
+                {% endif %}
+            </div>
+            <div class="no-print flex flex-wrap items-center gap-2">
+                {% block topbar_actions %}{% endblock %}
+            </div>
         </div>
+    </div>
 
-        <main class="flex-1 px-6 py-4">
-{% endif %}
+    {# ── Main content ── #}
+    <main class="flex-1 px-4 pb-6 sm:px-6">
+{% endif %}{# end app.user #}
 
-{# ── Each block defined exactly ONCE ── #}
+{# ══════════════════════════════════════════════════════════
+   BLOCKS — defined exactly ONCE
+   ══════════════════════════════════════════════════════════ #}
 {% block content %}{% block body %}{% endblock %}{% endblock %}
 
 {% if app.user %}
-        </main>
-        <footer class="text-center text-xs text-gray-400 py-3 border-t border-gray-100">
-            ChurchOS P Edition · Symfony · &copy; {{ 'now'|date('Y') }} Mwamiri Computers Ltd
-        </footer>
-    </div>
+    </main>
+
+    <footer class="no-print px-6 py-3 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+        <span>ChurchOS P Edition &copy; {{ 'now'|date('Y') }} Mwamiri Computers Ltd</span>
+        <span class="hidden sm:inline">Symfony 7 · PHP {{ constant('PHP_VERSION') }}</span>
+    </footer>
 </div>
-<div x-show="sidebarOpen" x-cloak @click="sidebarOpen=false" class="fixed inset-0 bg-black/50 z-40 lg:hidden"></div>
+</div>{# end flex #}
+
+{# ── Mobile bottom tab bar ── #}
+<nav class="tabbar no-print" aria-label="Quick navigation">
+    <a href="{{ path('insights_dashboard') }}" class="{{ app.request.pathInfo == '/dashboard' ? 'active' : '' }}">
+        <i class="bi bi-house"></i>Home
+    </a>
+    <a href="{{ path('ministry_list', {area: 'members'}) }}" class="{{ '/ministry/members' in app.request.pathInfo ? 'active' : '' }}">
+        <i class="bi bi-people"></i>Members
+    </a>
+    <button type="button" onclick="document.getElementById('global-search').focus(); document.getElementById('global-search').select()">
+        <i class="bi bi-search"></i>Search
+    </button>
+    <a href="{{ path('attendance_home') }}" class="{{ '/attendance' in app.request.pathInfo ? 'active' : '' }}">
+        <i class="bi bi-clipboard-check"></i>Attend.
+    </a>
+    <button type="button" @click="nav = true">
+        <i class="bi bi-grid"></i>Menu
+    </button>
+</nav>
 {% endif %}
 
 {% block body_scripts %}{% endblock %}
+
+<script>
+/* ── Theme / contrast / text-size controls ── */
+function setTextSize(s){
+    document.documentElement.style.fontSize = s;
+    try{localStorage.setItem('chosTextSize', s);}catch(e){}
+}
+document.getElementById('theme-toggle')?.addEventListener('click',function(){
+    var h = document.documentElement;
+    var dark = h.classList.toggle('dark');
+    try{localStorage.setItem('chosTheme', dark ? 'dark' : 'light');}catch(e){}
+});
+document.getElementById('contrast-toggle')?.addEventListener('click',function(){
+    var h = document.documentElement;
+    var on = h.dataset.contrast === 'high';
+    h.dataset.contrast = on ? '' : 'high';
+    try{localStorage.setItem('chosContrast', on ? '' : 'high');}catch(e){}
+});
+
+/* ── Ctrl+K → focus search ── */
+document.addEventListener('keydown',function(e){
+    if((e.ctrlKey||e.metaKey) && e.key === 'k'){
+        e.preventDefault();
+        var s = document.getElementById('global-search');
+        if(s){s.focus();s.select();}
+    }
+});
+
+/* ── Offline banner ── */
+var ob = document.getElementById('offline-banner');
+if(ob){
+    window.addEventListener('offline',function(){ob.classList.remove('hidden');});
+    window.addEventListener('online',function(){ob.classList.add('hidden');});
+}
+</script>
 </body>
 </html>

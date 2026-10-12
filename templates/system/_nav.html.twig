@@ -1,0 +1,17 @@
+<div class="no-print mb-6 flex flex-wrap gap-1 border-b border-slate-200 dark:border-slate-700 pb-0">
+    {% set items = [
+        {key: 'index',      route: 'system_index',      label: 'Overview',    icon: 'bi-speedometer2'},
+        {key: 'extensions', route: 'system_extensions', label: 'Extensions',  icon: 'bi-puzzle'},
+        {key: 'logs',       route: 'system_logs',       label: 'Audit Logs',  icon: 'bi-journal-text'},
+        {key: 'signins',    route: 'system_signins',    label: 'Sign-ins',    icon: 'bi-key'},
+    ] %}
+    {% for item in items %}
+    <a href="{{ path(item.route) }}"
+       class="flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors
+              {{ active == item.key
+                 ? 'border-brand-600 text-brand-700 dark:text-brand-300'
+                 : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:border-slate-300' }}">
+        <i class="bi {{ item.icon }}"></i>{{ item.label }}
+    </a>
+    {% endfor %}
+</div>

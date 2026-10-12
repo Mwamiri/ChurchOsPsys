@@ -1,0 +1,41 @@
+{% extends 'install/_layout.html.twig' %}
+{% block title %}Review — Install{% endblock %}
+{% set current_step = 5 %}
+
+{% block content %}
+<div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div class="px-6 py-5 border-b border-gray-100">
+        <h1 class="text-lg font-semibold text-gray-800"><i class="bi bi-check-all text-blue-600 mr-2"></i>Step 5 — Review and install</h1>
+    </div>
+
+    {% if error %}
+    <div class="mx-6 mt-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 flex items-start gap-2">
+        <i class="bi bi-exclamation-triangle flex-shrink-0 mt-0.5"></i>{{ error }}
+    </div>
+    {% endif %}
+
+    <div class="px-6 py-5 space-y-4">
+        <dl class="text-sm space-y-2">
+            <div class="flex gap-4"><dt class="w-32 text-gray-400">Church name</dt><dd class="font-medium">{{ church.church_name ?? '—' }}</dd></div>
+            <div class="flex gap-4"><dt class="w-32 text-gray-400">Root unit</dt><dd>{{ church.root_name ?? 'Headquarters' }}</dd></div>
+            <div class="flex gap-4"><dt class="w-32 text-gray-400">Time zone</dt><dd>{{ church.timezone ?? 'Africa/Nairobi' }}</dd></div>
+            <div class="flex gap-4"><dt class="w-32 text-gray-400">Mode</dt><dd>{{ church.environment ?? 'production' }}</dd></div>
+            <div class="flex gap-4"><dt class="w-32 text-gray-400">Admin name</dt><dd class="font-medium">{{ admin.name ?? '—' }}</dd></div>
+            <div class="flex gap-4"><dt class="w-32 text-gray-400">Admin email</dt><dd>{{ admin.email ?? '—' }}</dd></div>
+        </dl>
+        <p class="text-sm text-gray-500 border-t border-gray-100 pt-4">
+            Clicking <strong>Install now</strong> will save these settings and create the administrator account.
+            Database migrations must already be applied (run <code>php bin/console doctrine:migrations:migrate</code> first).
+        </p>
+    </div>
+
+    <div class="px-6 py-4 border-t border-gray-100 flex justify-between">
+        <a href="{{ path('install_admin') }}" class="btn-ghost"><i class="bi bi-arrow-left"></i> Back</a>
+        <form method="post">
+            <button type="submit" class="btn-primary">
+                <i class="bi bi-rocket-takeoff"></i> Install now
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
