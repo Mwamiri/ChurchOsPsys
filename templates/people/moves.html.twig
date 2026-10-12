@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+{% block title %}Member Moves — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Member Moves</h1>
+  {% if is_granted('ROLE_CLERK') %}
+  <a href="{{ path('ministry_new', {area: 'members'}) }}" class="btn-primary text-sm">Record Transfer</a>
+  {% endif %}
+</div>
+
+<div class="card overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Member</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">From Centre</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">To Centre</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Move Type</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Date</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for r in rows %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-2.5 font-medium">{{ r.member_name ?? '—' }}</td>
+        <td class="px-4 py-2.5 text-gray-500">{{ r.from_centre ?? '—' }}</td>
+        <td class="px-4 py-2.5 text-gray-500">{{ r.to_centre ?? '—' }}</td>
+        <td class="px-4 py-2.5 text-gray-500">{{ r.move_type ? r.move_type|replace({'_':' '})|capitalize : '—' }}</td>
+        <td class="px-4 py-2.5 text-gray-400">{{ r.move_date ? r.move_date|date('d M Y') : '—' }}</td>
+        <td class="px-4 py-2.5">
+          <span class="px-2 py-0.5 text-xs rounded-full
+            {{ r.status == 'approved' ? 'bg-green-50 text-green-700' :
+               r.status == 'pending'  ? 'bg-yellow-50 text-yellow-700' :
+               'bg-gray-100 text-gray-600' }}">
+            {{ r.status|capitalize }}
+          </span>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">No member moves recorded.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

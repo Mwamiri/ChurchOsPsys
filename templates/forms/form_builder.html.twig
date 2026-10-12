@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ form.title ?? 'New Form' }} — Forms — ChurchOS{% endblock %}
+
+{% block head_extra %}
+<style>
+.field-row{border:1px solid #e5e7eb;border-radius:0.5rem;padding:0.75rem;background:#f9fafb;margin-bottom:0.5rem}
+.field-row:hover{background:#f3f4f6}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ path('forms_index') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800">{{ form.title ?? 'New Form' }}</h1>
+  </div>
+
+  <form method="post" id="formBuilder" class="space-y-4">
+    <div class="card p-6 space-y-4">
+      <h2 class="font-semibold text-gray-700">Form Settings</h2>
+      <div><label class="form-label">Title <span class="text-red-500">*</span></label>
+        <input type="text" name="title" value="{{ form.title ?? '' }}" required class="input-field">
+      </div>
+      <div><label class="form-label">Description</label>
+        <textarea name="description" rows="2" class="input-field">{{ form.description ?? '' }}</textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div><label class="form-label">Closes At</label>
+          <input type="datetime-local" name="closes_at" value="{{ form.closes_at ?? '' }}" class="input-field">
+        </div>
+        <div class="flex items-center gap-3 pt-6">
+          <input type="checkbox" id="is_active" name="is_active" value="1" {{ (form.is_active ?? true) ? 'checked' : '' }} class="w-4 h-4 rounded border-gray-300 text-brand-600">
+          <label for="is_active" class="text-sm text-gray-700">Active (accepting responses)</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-semibold text-gray-700">Fields</h2>
+        <button type="button" onclick="addField()" class="btn-secondary text-sm">+ Add Field</button>
+      </div>
+      <div id="fieldsContainer">
+        {% set existingFields = form.fields ?? '[]' %}
+        {% set parsedFields = existingFields|json_decode ?? [] %}
+        {% for idx, fld in parsedFields %}
+        <div class="field-row" id="field_{{ idx }}">
+          <div class="grid grid-cols-2 gap-3 mb-2">
+            <div><label class="form-label text-xs">Label</label>
+              <input type="text" name="fields[{{ idx }}][label]" value="{{ fld.label }}" required class="input-field text-sm">
+            </div>
+            <div><label class="form-label text-xs">Type</label>
+              <select name="fields[{{ idx }}][type]" class="input-field text-sm">
+                {% for t in ['text','email','tel','number','date','select','checkbox','textarea'] %}
+                <option value="{{ t }}" {{ fld.type == t ? 'selected' : '' }}>{{ t|capitalize }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <label class="flex items-center gap-2 text-xs text-gray-600">
+              <input type="checkbox" name="fields[{{ idx }}][required]" value="1" {{ fld.required ? 'checked' : '' }} class="w-3.5 h-3.5">
+              Required
+            </label>
+            <button type="button" onclick="this.closest('.field-row').remove()" class="text-xs text-red-500 hover:text-red-700 ml-auto">Remove</button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="flex justify-between">
+      <a href="{{ path('forms_index') }}" class="btn-ghost">Cancel</a>
+      <button type="submit" class="btn-primary">Save Form</button>
+    </div>
+  </form>
+</div>
+
+{% block body_scripts %}
+<script>
+let fieldIdx = {{ (form.fields ?? '[]')|json_decode|length ?? 0 }};
+function addField(){
+  const c = document.getElementById('fieldsContainer');
+  const i = fieldIdx++;
+  c.insertAdjacentHTML('beforeend', `
+    <div class="field-row" id="field_${i}">
+      <div class="grid grid-cols-2 gap-3 mb-2">
+        <div><label class="form-label text-xs">Label</label>
+          <input type="text" name="fields[${i}][label]" required class="input-field text-sm" placeholder="Field label">
+        </div>
+        <div><label class="form-label text-xs">Type</label>
+          <select name="fields[${i}][type]" class="input-field text-sm">
+            ${['text','email','tel','number','date','select','checkbox','textarea'].map(t=>`<option value="${t}">${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <label class="flex items-center gap-2 text-xs text-gray-600">
+          <input type="checkbox" name="fields[${i}][required]" value="1" class="w-3.5 h-3.5"> Required
+        </label>
+        <button type="button" onclick="this.closest('.field-row').remove()" class="text-xs text-red-500 hover:text-red-700 ml-auto">Remove</button>
+      </div>
+    </div>`);
+}
+</script>
+{% endblock %}
+{% endblock %}

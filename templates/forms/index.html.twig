@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+{% block title %}Forms — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Forms</h1>
+  {% if is_granted('ROLE_CLERK') %}
+  <a href="{{ path('forms_new') }}" class="btn-primary text-sm">New Form</a>
+  {% endif %}
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {% for f in forms %}
+  <div class="card p-5">
+    <div class="flex items-start justify-between mb-2">
+      <h2 class="font-semibold text-gray-800">{{ f.title }}</h2>
+      <span class="px-2 py-0.5 text-xs rounded-full {{ f.is_active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500' }}">
+        {{ f.is_active ? 'Active' : 'Draft' }}
+      </span>
+    </div>
+    {% if f.description %}<p class="text-xs text-gray-500 mb-3 line-clamp-2">{{ f.description }}</p>{% endif %}
+    <p class="text-xs text-gray-400 mb-3">{{ f.submission_count ?? 0 }} submissions · /f/{{ f.slug }}</p>
+    <div class="flex gap-2">
+      {% if is_granted('ROLE_CLERK') %}
+      <a href="{{ path('forms_edit', {id: f.id}) }}" class="btn-secondary text-xs flex-1 justify-center">Edit</a>
+      <a href="{{ path('forms_submissions', {id: f.id}) }}" class="btn-ghost text-xs">Responses</a>
+      {% endif %}
+      <a href="{{ path('forms_public', {slug: f.slug}) }}" target="_blank" class="btn-ghost text-xs">Preview ↗</a>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-span-3 card p-8 text-center text-gray-400">No forms yet. Create your first form.</div>
+  {% endfor %}
+</div>
+{% endblock %}

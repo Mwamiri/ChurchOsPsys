@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+{% block title %}Follow-ups — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Follow-ups</h1>
+  <div class="flex gap-2">
+    <a href="{{ path('people_groups') }}" class="btn-secondary text-sm">Groups</a>
+    {% if is_granted('ROLE_CLERK') %}
+    <a href="{{ path('people_followup_new') }}" class="btn-primary text-sm">New Follow-up</a>
+    {% endif %}
+  </div>
+</div>
+
+<form method="get" class="mb-4 flex gap-2 flex-wrap">
+  <input type="text" name="q" value="{{ q ?? '' }}" placeholder="Search by name…" class="input-field flex-1 min-w-48 text-sm">
+  <select name="status" onchange="this.form.submit()" class="input-field w-36 text-sm">
+    <option value="">All Statuses</option>
+    {% for s in ['pending','in_progress','resolved','closed'] %}
+    <option value="{{ s }}" {{ (app.request.query.get('status') ?? '') == s ? 'selected' : '' }}>{{ s|replace({'_':' '})|capitalize }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn-secondary">Search</button>
+</form>
+
+<div class="card overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Person</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Type</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Assigned To</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Due</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Status</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for r in rows %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-2.5 font-medium">{{ r.person_name }}</td>
+        <td class="px-4 py-2.5 text-gray-500">{{ r.followup_type ?? '—' }}</td>
+        <td class="px-4 py-2.5 text-gray-500">{{ r.assigned_to ?? '—' }}</td>
+        <td class="px-4 py-2.5 text-gray-400">{{ r.due_date ? r.due_date|date('d M Y') : '—' }}</td>
+        <td class="px-4 py-2.5">
+          <span class="px-2 py-0.5 text-xs rounded-full
+            {{ r.status == 'resolved' ? 'bg-green-50 text-green-700' :
+               r.status == 'pending'  ? 'bg-yellow-50 text-yellow-700' :
+               'bg-gray-100 text-gray-600' }}">
+            {{ r.status|replace({'_':' '})|capitalize }}
+          </span>
+        </td>
+        <td class="px-4 py-2.5 text-right">
+          {% if is_granted('ROLE_CLERK') and r.status != 'resolved' %}
+          <form method="post" action="{{ path('people_followup_resolve', {id: r.id}) }}" class="inline">
+            <button type="submit" class="text-xs text-green-600 hover:underline" onclick="return confirm('Mark as resolved?')">Resolve</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">No follow-ups found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+{% block title %}SMS Groups — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">SMS Groups</h1>
+  <a href="{{ path('sms_compose') }}" class="btn-primary text-sm">New SMS</a>
+</div>
+
+<p class="text-sm text-gray-500 mb-6">
+  Target groups let you quickly send messages to a predefined set of recipients.
+  Groups are derived from your Ministry CRM records.
+</p>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {% for g in groups %}
+  <div class="card p-5">
+    <div class="flex items-start justify-between mb-2">
+      <h2 class="font-semibold text-gray-800">{{ g.name }}</h2>
+      <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs rounded-full">{{ g.count }} contacts</span>
+    </div>
+    {% if g.description %}<p class="text-xs text-gray-500 mb-3">{{ g.description }}</p>{% endif %}
+    <a href="{{ path('sms_compose', {group: g.key}) }}" class="btn-primary text-xs w-full justify-center">
+      Send to Group
+    </a>
+  </div>
+  {% else %}
+  <div class="col-span-3 card p-8 text-center text-gray-400">
+    No SMS groups configured. Groups are built from Ministry CRM members with phone numbers.
+  </div>
+  {% endfor %}
+</div>
+
+<div class="mt-6">
+  <h2 class="text-lg font-semibold text-gray-800 mb-3">Recent SMS Log</h2>
+  <div class="card overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Sent At</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Recipient</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Message</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for r in log %}
+        <tr>
+          <td class="px-4 py-2.5 text-gray-400">{{ r.sent_at ? r.sent_at|date('d M, H:i') : '—' }}</td>
+          <td class="px-4 py-2.5">{{ r.recipient }}</td>
+          <td class="px-4 py-2.5 text-gray-600 max-w-xs truncate">{{ r.message }}</td>
+          <td class="px-4 py-2.5">
+            <span class="px-2 py-0.5 text-xs rounded-full
+              {{ r.status == 'sent'   ? 'bg-green-50 text-green-700' :
+                 r.status == 'failed' ? 'bg-red-50 text-red-700' :
+                 'bg-gray-100 text-gray-600' }}">
+              {{ r.status|capitalize }}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">No SMS sent yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

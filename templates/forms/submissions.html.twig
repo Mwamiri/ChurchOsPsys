@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ form.title }} — Submissions — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="flex items-center gap-3 mb-6">
+  <a href="{{ path('forms_index') }}" class="text-gray-400 hover:text-gray-600">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+  </a>
+  <h1 class="text-2xl font-bold text-gray-800">{{ form.title }}: Submissions</h1>
+  <span class="ml-auto text-sm text-gray-500">{{ submissions|length }} total</span>
+</div>
+
+{% set fields = form.fields|json_decode ?? [] %}
+
+<div class="card overflow-x-auto">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">#</th>
+        {% for fld in fields %}
+        <th class="px-4 py-3 text-left font-medium text-gray-500">{{ fld.label }}</th>
+        {% endfor %}
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Submitted</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for idx, s in submissions %}
+      {% set data = s.data|json_decode ?? {} %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-2.5 text-gray-400">{{ idx + 1 }}</td>
+        {% for fld in fields %}
+        <td class="px-4 py-2.5 text-gray-700 max-w-xs truncate">{{ data[fld.label] ?? '—' }}</td>
+        {% endfor %}
+        <td class="px-4 py-2.5 text-gray-400">{{ s.submitted_at ? s.submitted_at|date('d M Y H:i') : '—' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="{{ fields|length + 2 }}" class="px-4 py-8 text-center text-gray-400">No submissions yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
