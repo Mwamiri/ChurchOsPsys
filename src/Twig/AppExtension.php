@@ -22,6 +22,8 @@ class AppExtension extends AbstractExtension implements GlobalsInterface
     {
         return [
             new TwigFilter('json_decode', fn($v) => is_string($v) ? json_decode($v, true) : $v),
+            new TwigFilter('min', fn($v) => is_array($v) ? min($v) : $v),
+            new TwigFilter('max', fn($v) => is_array($v) ? max($v) : $v),
         ];
     }
 }
