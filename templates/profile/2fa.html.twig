@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+{% block title %}Two-Factor Authentication — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="max-w-lg mx-auto">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ path('profile_index') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800">Two-Factor Authentication</h1>
+  </div>
+
+  {% if newSecret %}
+  <div class="card p-6 mb-4 bg-green-50 border border-green-200">
+    <h2 class="font-semibold text-green-800 mb-2">2FA Enabled!</h2>
+    <p class="text-sm text-green-700 mb-3">Save your secret key in an authenticator app (e.g. Google Authenticator, Authy).</p>
+    <code class="block bg-white border border-green-300 rounded-lg p-3 font-mono text-lg tracking-widest text-center text-gray-800">
+      {{ newSecret }}
+    </code>
+    <p class="text-xs text-green-600 mt-2">⚠️ This is the only time you will see this key. Copy it now.</p>
+  </div>
+  {% endif %}
+
+  <div class="card p-6">
+    {% if user.totpSecret %}
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-800">2FA is enabled</p>
+        <p class="text-sm text-gray-500">Your account is protected with TOTP authentication</p>
+      </div>
+    </div>
+    <form method="post">
+      <input type="hidden" name="action" value="disable">
+      <button type="submit" class="btn-danger w-full" onclick="return confirm('Disable 2FA? This reduces your account security.')">Disable 2FA</button>
+    </form>
+    {% else %}
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.072 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-800">2FA is not enabled</p>
+        <p class="text-sm text-gray-500">Enable TOTP for stronger account protection</p>
+      </div>
+    </div>
+    <form method="post">
+      <input type="hidden" name="action" value="enable">
+      <button type="submit" class="btn-primary w-full">Enable 2FA</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

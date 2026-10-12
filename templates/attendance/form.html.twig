@@ -1,0 +1,101 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ isNew ? 'New' : 'Edit' }} Service Report — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl mx-auto">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ path('attendance_home') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800">{{ isNew ? 'New' : 'Edit' }} Service Report</h1>
+  </div>
+
+  <form method="post" class="space-y-5">
+    <div class="card p-6">
+      <h2 class="text-base font-semibold text-gray-700 mb-4">Service Details</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="form-label">Service Date <span class="text-red-500">*</span></label>
+          <input type="date" name="service_date" value="{{ report.service_date ?? 'now'|date('Y-m-d') }}" required class="input-field">
+        </div>
+        <div>
+          <label class="form-label">Service Type</label>
+          <select name="service_type" class="input-field">
+            {% for t in ['Sunday Service','Mid-Week Service','Prayer Meeting','Special Service','Youth Service','Children Service','Other'] %}
+            <option value="{{ t }}" {{ report.service_type == t ? 'selected' : '' }}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% if serviceTimes %}
+        <div>
+          <label class="form-label">Service Time</label>
+          <select name="service_time_id" class="input-field">
+            <option value="">— Select time —</option>
+            {% for st in serviceTimes %}
+            <option value="{{ st.id }}" {{ report.service_time_id == st.id ? 'selected' : '' }}>{{ st.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card p-6">
+      <h2 class="text-base font-semibold text-gray-700 mb-4">Attendance</h2>
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <label class="form-label">Adults</label>
+          <input type="number" name="attendance_adults" min="0" value="{{ report.attendance_adults ?? 0 }}" class="input-field">
+        </div>
+        <div>
+          <label class="form-label">Youth</label>
+          <input type="number" name="attendance_youth" min="0" value="{{ report.attendance_youth ?? 0 }}" class="input-field">
+        </div>
+        <div>
+          <label class="form-label">Children</label>
+          <input type="number" name="attendance_children" min="0" value="{{ report.attendance_children ?? 0 }}" class="input-field">
+        </div>
+        <div>
+          <label class="form-label">First Timers</label>
+          <input type="number" name="first_timers" min="0" value="{{ report.first_timers ?? 0 }}" class="input-field">
+        </div>
+        <div>
+          <label class="form-label">New Believers</label>
+          <input type="number" name="new_believers" min="0" value="{{ report.new_believers ?? 0 }}" class="input-field">
+        </div>
+        <div>
+          <label class="form-label">Offering Total (KES)</label>
+          <input type="number" name="offering_total" step="0.01" min="0" value="{{ report.offering_total ?? 0 }}" class="input-field">
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-6">
+      <h2 class="text-base font-semibold text-gray-700 mb-4">Sermon</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="form-label">Preacher</label>
+          <input type="text" name="preacher" value="{{ report.preacher ?? '' }}" class="input-field">
+        </div>
+        <div>
+          <label class="form-label">Sermon Scripture</label>
+          <input type="text" name="sermon_scripture" placeholder="e.g. John 3:16" value="{{ report.sermon_scripture ?? '' }}" class="input-field">
+        </div>
+        <div class="col-span-2">
+          <label class="form-label">Sermon Title</label>
+          <input type="text" name="sermon_title" value="{{ report.sermon_title ?? '' }}" class="input-field">
+        </div>
+        <div class="col-span-2">
+          <label class="form-label">Notes</label>
+          <textarea name="notes" rows="3" class="input-field">{{ report.notes ?? '' }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-between">
+      <a href="{{ path('attendance_home') }}" class="btn-ghost">Cancel</a>
+      <button type="submit" class="btn-primary">{{ isNew ? 'Save Draft' : 'Update Report' }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

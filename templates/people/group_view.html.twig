@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ group.group_name }} — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ path('people_groups') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800">{{ group.group_name }}</h1>
+    <span class="ml-auto text-sm text-gray-500">{{ members|length }} members</span>
+  </div>
+
+  {% if is_granted('ROLE_CLERK') %}
+  <form method="post" action="{{ path('people_group_add_member', {id: group.id}) }}" class="card p-4 mb-4 flex flex-wrap gap-3 items-end">
+    <div class="flex-1 min-w-32">
+      <label class="form-label text-xs">Name</label>
+      <input type="text" name="member_name" placeholder="Member name" class="input-field text-sm">
+    </div>
+    <div class="w-36">
+      <label class="form-label text-xs">Role in Group</label>
+      <input type="text" name="role_in_group" placeholder="e.g. Leader" class="input-field text-sm">
+    </div>
+    <div class="w-36">
+      <label class="form-label text-xs">Joined Date</label>
+      <input type="date" name="joined_date" value="{{ 'now'|date('Y-m-d') }}" class="input-field text-sm">
+    </div>
+    <button type="submit" class="btn-primary text-sm">Add Member</button>
+  </form>
+  {% endif %}
+
+  <div class="card overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Name</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Phone</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Role</th>
+          <th class="px-4 py-3 text-left font-medium text-gray-500">Joined</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for m in members %}
+        <tr>
+          <td class="px-4 py-2.5 font-medium">{{ m.full_name ?? m.member_name ?? '—' }}</td>
+          <td class="px-4 py-2.5 text-gray-500">{{ m.phone ?? '—' }}</td>
+          <td class="px-4 py-2.5 text-gray-500">{{ m.role_in_group ?? '—' }}</td>
+          <td class="px-4 py-2.5 text-gray-400">{{ m.joined_date ? m.joined_date|date('d M Y') : '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">No members yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

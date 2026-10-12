@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+{% block title %}Giving Batches — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Giving Batches</h1>
+  <div class="flex gap-2">
+    <a href="{{ path('giving_home') }}" class="btn-ghost text-sm">Dashboard</a>
+    <a href="{{ path('giving_pledges') }}" class="btn-secondary text-sm">Pledges</a>
+    <a href="{{ path('giving_funds') }}" class="btn-secondary text-sm">Funds</a>
+    <a href="{{ path('giving_statements') }}" class="btn-secondary text-sm">Statements</a>
+    {% if is_granted('ROLE_CLERK') %}
+    <a href="{{ path('giving_batch_new') }}" class="btn-primary text-sm">New Batch</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Reference</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Date</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Description</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500">Total (KES)</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Status</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for b in rows %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-3 font-mono text-xs text-gray-600">{{ b.batch_ref }}</td>
+        <td class="px-4 py-3">{{ b.batch_date|date('d M Y') }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ b.description ?? '—' }}</td>
+        <td class="px-4 py-3 text-right font-semibold">{{ b.total_amount|number_format(2) }}</td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium
+            {{ b.status == 'open' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700' }}">
+            {{ b.status|capitalize }}
+          </span>
+        </td>
+        <td class="px-4 py-3 text-right">
+          <a href="{{ path('giving_batch_view', {id: b.id}) }}" class="text-blue-600 hover:underline text-xs">View</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">No batches yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if pages > 1 %}
+<div class="mt-4 flex gap-1 justify-end">
+  {% for p in 1..pages %}
+  <a href="{{ path('giving_batches', {page: p}) }}"
+     class="px-3 py-1 rounded text-sm {{ p == page ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200' }}">{{ p }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+{% block title %}Edit Profile — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="max-w-lg mx-auto">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ path('profile_index') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800">Edit Profile</h1>
+  </div>
+  <form method="post" class="card p-6 space-y-4">
+    <div>
+      <label class="form-label">Full Name</label>
+      <input type="text" name="name" value="{{ user.name }}" required class="input-field">
+    </div>
+    <div>
+      <label class="form-label">Email</label>
+      <input type="email" name="email" value="{{ user.email ?? '' }}" class="input-field">
+    </div>
+    <div>
+      <label class="form-label">Phone</label>
+      <input type="tel" name="phone" value="{{ user.phone ?? '' }}" class="input-field">
+    </div>
+    <div>
+      <label class="form-label">Language</label>
+      <select name="locale" class="input-field">
+        <option value="en" {{ user.locale == 'en' ? 'selected' : '' }}>English</option>
+        <option value="sw" {{ user.locale == 'sw' ? 'selected' : '' }}>Kiswahili</option>
+      </select>
+    </div>
+    <div class="flex justify-between pt-2 border-t border-gray-100">
+      <a href="{{ path('profile_index') }}" class="btn-ghost">Cancel</a>
+      <button type="submit" class="btn-primary">Save Changes</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

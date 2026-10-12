@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ cfg.label }} — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">{{ cfg.label }}</h1>
+  <div class="flex gap-2">
+    {% if is_granted('ROLE_CLERK') %}
+    <a href="{{ path('ministry_import', {area: area}) }}" class="btn-secondary">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+      Import
+    </a>
+    <a href="{{ path('ministry_new', {area: area}) }}" class="btn-primary">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Add {{ cfg.label[:-1] ?? cfg.label }}
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+{# Search bar #}
+<form method="get" class="mb-4 flex gap-2">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search…"
+    class="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+  <button type="submit" class="btn-secondary">Search</button>
+  {% if q %}<a href="{{ path('ministry_list', {area: area}) }}" class="btn-ghost">Clear</a>{% endif %}
+</form>
+
+{# Table #}
+<div class="card overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">#</th>
+        {% for f in fields|slice(0, 4) %}
+        <th class="px-4 py-3 text-left font-medium text-gray-500">{{ f.label }}</th>
+        {% endfor %}
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Added</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for row in rows %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-3 text-gray-400">{{ row.id }}</td>
+        {% for f in fields|slice(0, 4) %}
+        <td class="px-4 py-3 text-gray-700">{{ attribute(row, f.col) ?? '—' }}</td>
+        {% endfor %}
+        <td class="px-4 py-3 text-gray-400">{{ row.created_at ? row.created_at|date('d M Y') : '—' }}</td>
+        <td class="px-4 py-3">
+          <div class="flex gap-2 justify-end">
+            <a href="{{ path('ministry_view', {area: area, id: row.id}) }}" class="text-blue-600 hover:underline text-xs">View</a>
+            {% if is_granted('ROLE_CLERK') %}
+            <a href="{{ path('ministry_edit', {area: area, id: row.id}) }}" class="text-gray-600 hover:underline text-xs">Edit</a>
+            <form method="post" action="{{ path('ministry_delete', {area: area, id: row.id}) }}" onsubmit="return confirm('Delete this record?')">
+              <input type="hidden" name="_token" value="{{ csrf_token('del_' ~ area ~ row.id) }}">
+              <button class="text-red-500 hover:underline text-xs">Delete</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">No records found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# Pagination #}
+{% if pages > 1 %}
+<div class="mt-4 flex items-center justify-between text-sm text-gray-600">
+  <span>Showing {{ rows|length }} of {{ total }} records</span>
+  <div class="flex gap-1">
+    {% for p in 1..pages %}
+    <a href="{{ path('ministry_list', {area: area, page: p, q: q}) }}"
+       class="px-3 py-1 rounded {{ p == page ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200' }}">{{ p }}</a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

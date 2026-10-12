@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+{% block title %}Groups — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-2xl font-bold text-gray-800">Groups</h1>
+  <div class="flex gap-2">
+    <a href="{{ path('people_followups') }}" class="btn-secondary text-sm">Follow-ups</a>
+    <a href="{{ path('people_households') }}" class="btn-secondary text-sm">Households</a>
+    {% if is_granted('ROLE_CLERK') %}
+    <a href="{{ path('ministry_new', {area: 'groups'}) }}" class="btn-primary text-sm">New Group</a>
+    {% endif %}
+  </div>
+</div>
+
+<form method="get" class="mb-4 flex gap-2">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search groups…" class="input-field flex-1 text-sm">
+  <button type="submit" class="btn-secondary">Search</button>
+</form>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {% for g in rows %}
+  <div class="card p-5 hover:shadow-md transition-shadow">
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="font-semibold text-gray-800">{{ g.group_name }}</h2>
+      <span class="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">{{ g.member_count }} members</span>
+    </div>
+    {% if g.group_kind %}<p class="text-xs text-gray-500 mb-1">{{ g.group_kind|replace({'_': ' '})|capitalize }}</p>{% endif %}
+    {% if g.meeting_day %}<p class="text-xs text-gray-400">{{ g.meeting_day|capitalize }}s {{ g.meeting_time ?? '' }}{{ g.meeting_venue ? ' — ' ~ g.meeting_venue : '' }}</p>{% endif %}
+    <div class="mt-3 flex gap-2">
+      <a href="{{ path('people_group_view', {id: g.id}) }}" class="text-blue-600 hover:underline text-xs">View members</a>
+      {% if is_granted('ROLE_CLERK') %}
+      <a href="{{ path('ministry_edit', {area: 'groups', id: g.id}) }}" class="text-gray-500 hover:text-gray-700 text-xs">Edit</a>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="col-span-3 card p-8 text-center text-gray-400">No groups found.</div>
+  {% endfor %}
+</div>
+{% endblock %}

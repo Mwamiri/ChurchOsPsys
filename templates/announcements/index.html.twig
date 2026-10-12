@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+{% block title %}Announcements — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Announcements</h1>
+  {% if is_granted('ROLE_CLERK') %}
+  <a href="{{ path('announcements_new') }}" class="btn-primary text-sm">New Announcement</a>
+  {% endif %}
+</div>
+
+<div class="flex gap-2 mb-4">
+  {% for s in ['all','draft','published'] %}
+  <a href="{{ path('announcements_index', {status: s}) }}"
+     class="px-3 py-1.5 rounded-lg text-sm font-medium {{ s == status ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+    {{ s|capitalize }}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="space-y-3">
+  {% for a in rows %}
+  <div class="card p-5 flex items-start gap-4">
+    {% if a.is_pinned %}
+    <div class="mt-0.5 text-orange-500">
+      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5v6h2v-6h5v-2l-2-2z"/></svg>
+    </div>
+    {% endif %}
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2 mb-1">
+        <h2 class="font-semibold text-gray-800 truncate">{{ a.title }}</h2>
+        <span class="px-2 py-0.5 rounded-full text-xs font-medium
+          {{ a.status == 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' }}">
+          {{ a.status|capitalize }}
+        </span>
+        {% if a.is_sms %}
+        <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">SMS</span>
+        {% endif %}
+      </div>
+      <p class="text-sm text-gray-600 line-clamp-2">{{ a.body|striptags|slice(0,200) }}</p>
+      <p class="text-xs text-gray-400 mt-2">{{ a.publish_date ? 'Published: ' ~ a.publish_date|date('d M Y') : '' }} | By: {{ a.author ?? '—' }}</p>
+    </div>
+    <div class="flex gap-2 flex-shrink-0">
+      {% if is_granted('ROLE_CLERK') %}
+      <a href="{{ path('announcements_edit', {id: a.id}) }}" class="text-gray-500 hover:text-gray-700 text-sm">Edit</a>
+      {% endif %}
+      {% if a.status == 'draft' and is_granted('ROLE_EXECUTIVE') %}
+      <form method="post" action="{{ path('announcements_publish', {id: a.id}) }}">
+        <input type="hidden" name="_token" value="{{ csrf_token('pub_ann_' ~ a.id) }}">
+        <button class="text-green-600 hover:text-green-800 text-sm">Publish</button>
+      </form>
+      {% endif %}
+      {% if is_granted('ROLE_ADMIN') %}
+      <form method="post" action="{{ path('announcements_delete', {id: a.id}) }}" onsubmit="return confirm('Delete?')">
+        <input type="hidden" name="_token" value="{{ csrf_token('del_ann_' ~ a.id) }}">
+        <button class="text-red-500 hover:text-red-700 text-sm">Delete</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="card p-8 text-center text-gray-400">No announcements found.</div>
+  {% endfor %}
+</div>
+{% endblock %}

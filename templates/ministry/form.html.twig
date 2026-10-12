@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ isNew ? 'Add' : 'Edit' }} {{ cfg.label }} — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl mx-auto">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ path('ministry_list', {area: area}) }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800">{{ isNew ? 'Add' : 'Edit' }} {{ cfg.label }}</h1>
+  </div>
+
+  <form method="post" class="card space-y-4 p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {% for f in fields %}
+      <div class="{{ f.type == 'textarea' ? 'md:col-span-2' : '' }}">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          {{ f.label }}{% if f.required ?? false %} <span class="text-red-500">*</span>{% endif %}
+        </label>
+
+        {% if f.type == 'textarea' %}
+        <textarea name="{{ f.col }}" rows="3"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">{{ attribute(record, f.col) ?? '' }}</textarea>
+
+        {% elseif f.type == 'select' %}
+        <select name="{{ f.col }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+          <option value="">— Select —</option>
+          {% for opt in f.options %}
+          <option value="{{ opt }}" {{ attribute(record, f.col) == opt ? 'selected' : '' }}>{{ opt|replace({'_': ' '})|title }}</option>
+          {% endfor %}
+        </select>
+
+        {% elseif f.type == 'checkbox' %}
+        <div class="flex items-center gap-2 pt-2">
+          <input type="checkbox" name="{{ f.col }}" value="1" class="w-4 h-4 text-blue-600 rounded"
+            {{ attribute(record, f.col) ? 'checked' : '' }}>
+          <span class="text-sm text-gray-600">Yes</span>
+        </div>
+
+        {% else %}
+        <input type="{{ f.type }}" name="{{ f.col }}"
+          value="{{ attribute(record, f.col) ?? '' }}"
+          {% if f.required ?? false %}required{% endif %}
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500">
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="flex justify-between pt-2 border-t border-gray-100">
+      <a href="{{ path('ministry_list', {area: area}) }}" class="btn-ghost">Cancel</a>
+      <button type="submit" class="btn-primary">{{ isNew ? 'Save Record' : 'Update Record' }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

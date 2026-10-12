@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ isNew ? 'New' : 'Edit' }} Announcement — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ path('announcements_index') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800">{{ isNew ? 'New Announcement' : 'Edit Announcement' }}</h1>
+  </div>
+
+  <form method="post" class="card p-6 space-y-4">
+    <div>
+      <label class="form-label">Title <span class="text-red-500">*</span></label>
+      <input type="text" name="title" value="{{ ann.title ?? '' }}" required class="input-field">
+    </div>
+    <div>
+      <label class="form-label">Body <span class="text-red-500">*</span></label>
+      <textarea name="body" rows="6" required class="input-field">{{ ann.body ?? '' }}</textarea>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="form-label">Audience</label>
+        <select name="audience" class="input-field">
+          {% for a in ['all','members','leaders','volunteers'] %}
+          <option value="{{ a }}" {{ ann.audience == a ? 'selected' : '' }}>{{ a|capitalize }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Status</label>
+        <select name="status" class="input-field">
+          <option value="draft" {{ (ann.status ?? 'draft') == 'draft' ? 'selected' : '' }}>Draft</option>
+          <option value="published" {{ ann.status == 'published' ? 'selected' : '' }}>Published</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Publish Date</label>
+        <input type="date" name="publish_date" value="{{ ann.publish_date ?? 'now'|date('Y-m-d') }}" class="input-field">
+      </div>
+      <div>
+        <label class="form-label">Expiry Date</label>
+        <input type="date" name="expiry_date" value="{{ ann.expiry_date ?? '' }}" class="input-field">
+      </div>
+    </div>
+    <div class="flex gap-6">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" name="is_pinned" value="1" {{ ann.is_pinned ?? false ? 'checked' : '' }} class="w-4 h-4 text-blue-600 rounded">
+        <span class="text-sm text-gray-700">Pin this announcement</span>
+      </label>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" name="is_sms" value="1" {{ ann.is_sms ?? false ? 'checked' : '' }} class="w-4 h-4 text-blue-600 rounded">
+        <span class="text-sm text-gray-700">Send via SMS</span>
+      </label>
+    </div>
+    <div class="flex justify-between pt-2 border-t border-gray-100">
+      <a href="{{ path('announcements_index') }}" class="btn-ghost">Cancel</a>
+      <button type="submit" class="btn-primary">{{ isNew ? 'Save' : 'Update' }}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

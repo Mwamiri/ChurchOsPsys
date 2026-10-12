@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+{% block title %}Giving Statements — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Giving Statements</h1>
+  <form method="get" class="flex gap-2 items-center">
+    <select name="year" onchange="this.form.submit()" class="input-field w-28 text-sm">
+      {% for y in range('now'|date('Y'), ('now'|date('Y') - 5), -1) %}
+      <option value="{{ y }}" {{ y == year ? 'selected' : '' }}>{{ y }}</option>
+      {% endfor %}
+    </select>
+    <select name="fund_id" onchange="this.form.submit()" class="input-field w-40 text-sm">
+      <option value="">All Funds</option>
+      {% for f in funds %}<option value="{{ f.id }}" {{ f.id == fundId ? 'selected' : '' }}>{{ f.name }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+
+<div class="card overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Fund</th>
+        {% for m in 1..12 %}
+        <th class="px-2 py-3 text-right font-medium text-gray-500">{{ m|date('M', (m * 2592000)|date_modify('now')) ?? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1] }}</th>
+        {% endfor %}
+        <th class="px-4 py-3 text-right font-medium text-gray-500">Total</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% set byFund = {} %}
+      {% for r in data %}
+        {% set fn = r.fund_name ?? 'General' %}
+        {% if byFund[fn] is not defined %}{% set byFund = byFund|merge({(fn): {}}) %}{% endif %}
+        {% set byFund = byFund|merge({(fn): byFund[fn]|merge({(r.month): r.total})}) %}
+      {% endfor %}
+      {% for fname, months in byFund %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-3 font-medium">{{ fname }}</td>
+        {% set rowTotal = 0 %}
+        {% for m in 1..12 %}
+        <td class="px-2 py-3 text-right text-xs">
+          {% if months[m] is defined %}{{ months[m]|number_format(0) }}{% set rowTotal = rowTotal + months[m] %}{% else %}—{% endif %}
+        </td>
+        {% endfor %}
+        <td class="px-4 py-3 text-right font-bold text-green-700">{{ rowTotal|number_format(0) }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="14" class="px-4 py-8 text-center text-gray-400">No data for {{ year }}.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

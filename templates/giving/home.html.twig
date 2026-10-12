@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+{% block title %}Giving — ChurchOS{% endblock %}
+
+{% block body %}
+<h1 class="text-2xl font-bold text-gray-800 mb-6">Giving</h1>
+
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+  {% set tiles = [
+    {label:'Open Batches', value:stats.batches_open, color:'blue'},
+    {label:'Total Batches', value:stats.batches_total, color:'gray'},
+    {label:'Month Total (KES)', value:stats.month_total|number_format(2), color:'green'},
+    {label:'Active Funds', value:stats.funds_count, color:'purple'},
+    {label:'Active Pledges', value:stats.pledges_active, color:'orange'},
+  ] %}
+  {% for t in tiles %}
+  <div class="card p-4 text-center">
+    <p class="text-2xl font-bold text-{{ t.color }}-600">{{ t.value }}</p>
+    <p class="text-xs text-gray-500 mt-1">{{ t.label }}</p>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="flex items-center justify-between mb-4">
+  <h2 class="text-lg font-semibold text-gray-700">Recent Batches</h2>
+  <div class="flex gap-2">
+    <a href="{{ path('giving_batches') }}" class="btn-ghost text-sm">View All</a>
+    {% if is_granted('ROLE_CLERK') %}
+    <a href="{{ path('giving_batch_new') }}" class="btn-primary text-sm">New Batch</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Ref</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Date</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500">Total (KES)</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Status</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for b in recentBatches %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-3 font-mono text-xs text-gray-600">{{ b.batch_ref }}</td>
+        <td class="px-4 py-3">{{ b.batch_date|date('d M Y') }}</td>
+        <td class="px-4 py-3 text-right font-medium">{{ b.total_amount|number_format(2) }}</td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium
+            {{ b.status == 'open' ? 'bg-blue-100 text-blue-700' : (b.status == 'closed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600') }}">
+            {{ b.status|capitalize }}
+          </span>
+        </td>
+        <td class="px-4 py-3 text-right">
+          <a href="{{ path('giving_batch_view', {id: b.id}) }}" class="text-blue-600 hover:underline text-xs">View</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">No batches yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

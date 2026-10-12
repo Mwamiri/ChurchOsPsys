@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ cfg.label }} Record — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ path('ministry_list', {area: area}) }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800">{{ cfg.label }} Record #{{ record.id }}</h1>
+    {% if is_granted('ROLE_CLERK') %}
+    <a href="{{ path('ministry_edit', {area: area, id: record.id}) }}" class="ml-auto btn-secondary text-sm">Edit</a>
+    {% endif %}
+  </div>
+
+  <div class="card p-6">
+    <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+      {% for f in fields %}
+      <div>
+        <dt class="text-xs font-medium text-gray-500 uppercase tracking-wide">{{ f.label }}</dt>
+        <dd class="mt-1 text-sm text-gray-800">
+          {% if f.type == 'checkbox' %}
+            {{ attribute(record, f.col) ? 'Yes' : 'No' }}
+          {% elseif f.type == 'textarea' %}
+            <span class="whitespace-pre-line">{{ attribute(record, f.col) ?? '—' }}</span>
+          {% else %}
+            {{ attribute(record, f.col) ?? '—' }}
+          {% endif %}
+        </dd>
+      </div>
+      {% endfor %}
+    </dl>
+    <div class="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-400 flex gap-6">
+      <span>Created: {{ record.created_at ? record.created_at|date('d M Y H:i') : '—' }}</span>
+      <span>Updated: {{ record.updated_at ? record.updated_at|date('d M Y H:i') : '—' }}</span>
+    </div>
+  </div>
+</div>
+{% endblock %}

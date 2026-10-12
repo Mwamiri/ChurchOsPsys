@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+{% block title %}Attendance Trends — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Attendance Trends</h1>
+  <form method="get" class="flex gap-2 items-center">
+    <label class="text-sm text-gray-600">Months:</label>
+    <select name="months" onchange="this.form.submit()" class="input-field w-24 text-sm">
+      {% for m in [3, 6, 12, 24] %}
+      <option value="{{ m }}" {{ m == months ? 'selected' : '' }}>{{ m }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+
+<div class="card p-6">
+  <canvas id="trendsChart" height="300"></canvas>
+</div>
+
+<div class="card overflow-hidden mt-6">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Month</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500">Services</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500">Total Attendance</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500">First Timers</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500">Avg / Service</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for r in data %}
+      <tr>
+        <td class="px-4 py-3 font-medium">{{ r.ym }}</td>
+        <td class="px-4 py-3 text-right">{{ r.services }}</td>
+        <td class="px-4 py-3 text-right font-semibold text-blue-700">{{ r.total }}</td>
+        <td class="px-4 py-3 text-right">{{ r.first_timers }}</td>
+        <td class="px-4 py-3 text-right text-gray-500">{{ r.services > 0 ? (r.total / r.services)|round(0) : 0 }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">No approved reports in this range.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const labels = {{ data|map(r => r.ym)|json_encode|raw }};
+const totals = {{ data|map(r => r.total)|json_encode|raw }};
+const first  = {{ data|map(r => r.first_timers)|json_encode|raw }};
+
+new Chart(document.getElementById('trendsChart'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [
+      { label: 'Total Attendance', data: totals, backgroundColor: 'rgba(59,130,246,0.7)' },
+      { label: 'First Timers', data: first, backgroundColor: 'rgba(249,115,22,0.7)', type: 'line', yAxisID: 'y2' },
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y: { beginAtZero: true },
+      y2: { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false } }
+    }
+  }
+});
+</script>
+{% endblock %}

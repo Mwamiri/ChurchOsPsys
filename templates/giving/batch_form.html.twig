@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+{% block title %}New Giving Batch — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="max-w-lg mx-auto">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ path('giving_batches') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800">New Giving Batch</h1>
+  </div>
+  <form method="post" class="card p-6 space-y-4">
+    <div>
+      <label class="form-label">Batch Date <span class="text-red-500">*</span></label>
+      <input type="date" name="batch_date" value="{{ batch.batch_date ?? 'now'|date('Y-m-d') }}" required class="input-field">
+    </div>
+    <div>
+      <label class="form-label">Description</label>
+      <input type="text" name="description" value="{{ batch.description ?? '' }}" placeholder="e.g. Sunday 13 Oct 2026 Main Service" class="input-field">
+    </div>
+    <div class="flex justify-between pt-2 border-t border-gray-100">
+      <a href="{{ path('giving_batches') }}" class="btn-ghost">Cancel</a>
+      <button type="submit" class="btn-primary">Create Batch</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

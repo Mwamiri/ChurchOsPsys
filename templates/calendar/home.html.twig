@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+{% block title %}Calendar — ChurchOS{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.10/index.global.min.css">
+{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Church Calendar</h1>
+  {% if is_granted('ROLE_CLERK') %}
+  <a href="{{ path('calendar_event_new') }}" class="btn-primary text-sm">Add Event</a>
+  {% endif %}
+</div>
+
+<div class="card p-4">
+  <div id="calendar"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.10/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const el = document.getElementById('calendar');
+  const cal = new FullCalendar.Calendar(el, {
+    initialView: 'dayGridMonth',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,listMonth'
+    },
+    events: '{{ path('calendar_events_json') }}',
+    eventClick: function(info) {
+      if (info.event.url) {
+        info.jsEvent.preventDefault();
+        window.location.href = info.event.url;
+      }
+    },
+    height: 'auto',
+  });
+  cal.render();
+});
+</script>
+{% endblock %}

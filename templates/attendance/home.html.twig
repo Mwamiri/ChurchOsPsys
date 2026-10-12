@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+{% block title %}Attendance — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Attendance Reports</h1>
+  <div class="flex gap-2">
+    <a href="{{ path('attendance_trends') }}" class="btn-secondary text-sm">Trends</a>
+    {% if is_granted('ROLE_CLERK') %}
+    <a href="{{ path('attendance_new') }}" class="btn-primary text-sm">New Report</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Date</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Service Type</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500">Total</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500">First Timers</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500">Offering (KES)</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Status</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">By</th>
+        <th class="px-4 py-3"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for r in rows %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-3 font-medium">{{ r.service_date|date('D, d M Y') }}</td>
+        <td class="px-4 py-3 text-gray-600">{{ r.service_type ?? 'Sunday Service' }}</td>
+        <td class="px-4 py-3 text-right font-semibold">{{ r.attendance_total }}</td>
+        <td class="px-4 py-3 text-right">{{ r.first_timers }}</td>
+        <td class="px-4 py-3 text-right">{{ r.offering_total|number_format(2) }}</td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium
+            {{ r.status == 'approved' ? 'bg-green-100 text-green-700' : (r.status == 'submitted' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600') }}">
+            {{ r.status|capitalize }}
+          </span>
+        </td>
+        <td class="px-4 py-3 text-gray-500 text-xs">{{ r.submitted_by_name ?? '—' }}</td>
+        <td class="px-4 py-3 text-right">
+          <a href="{{ path('attendance_view', {id: r.id}) }}" class="text-blue-600 hover:underline text-xs">View</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="px-4 py-8 text-center text-gray-400">No reports yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if pages > 1 %}
+<div class="mt-4 flex items-center justify-between text-sm text-gray-600">
+  <span>{{ total }} reports</span>
+  <div class="flex gap-1">
+    {% for p in 1..pages %}
+    <a href="{{ path('attendance_home', {page: p}) }}"
+       class="px-3 py-1 rounded {{ p == page ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200' }}">{{ p }}</a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

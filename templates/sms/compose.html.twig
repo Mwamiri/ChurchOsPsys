@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+{% block title %}Compose SMS — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto">
+  <div class="flex items-center gap-3 mb-6">
+    <a href="{{ path('sms_index') }}" class="text-gray-400 hover:text-gray-600">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-800">Compose SMS</h1>
+  </div>
+
+  <form method="post" class="card p-6 space-y-4" x-data="smsCompose()">
+    <div>
+      <label class="form-label">Recipients</label>
+      <p class="text-xs text-gray-500 mb-1">One per line. Format: <code>Name, +254700000000</code> or just <code>+254700000000</code></p>
+      <textarea name="recipients" x-model="recipients" rows="6" placeholder="+254712345678&#10;Mary Wanjiku, +254723456789"
+        class="input-field font-mono text-sm" required></textarea>
+      <p class="text-xs text-gray-400 mt-1" x-text="recipientCount + ' recipient(s)'"></p>
+    </div>
+    <div>
+      <div class="flex items-center justify-between mb-1">
+        <label class="form-label mb-0">Message</label>
+        <span class="text-xs text-gray-400" x-text="message.length + ' / 160 chars (' + Math.ceil(message.length / 160) + ' SMS)'"></span>
+      </div>
+      <textarea name="message" x-model="message" rows="4" maxlength="480" required
+        class="input-field" placeholder="Type your message here…"></textarea>
+    </div>
+    <div class="flex justify-between pt-2 border-t border-gray-100">
+      <a href="{{ path('sms_index') }}" class="btn-ghost">Cancel</a>
+      <button type="submit" class="btn-primary">Send SMS</button>
+    </div>
+  </form>
+</div>
+
+<script>
+function smsCompose() {
+  return {
+    recipients: '{{ req.recipients ?? '' }}',
+    message: '{{ req.message ?? '' }}',
+    get recipientCount() {
+      return this.recipients.split('\n').filter(l => l.trim().length > 0).length;
+    }
+  };
+}
+</script>
+{% endblock %}

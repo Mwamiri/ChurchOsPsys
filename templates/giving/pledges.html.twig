@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+{% block title %}Pledges — ChurchOS{% endblock %}
+
+{% block body %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">Pledges</h1>
+  {% if is_granted('ROLE_CLERK') %}
+  <a href="{{ path('giving_pledge_new') }}" class="btn-primary text-sm">New Pledge</a>
+  {% endif %}
+</div>
+<div class="card overflow-hidden">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Pledger</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Fund</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500">Pledged (KES)</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500">Paid (KES)</th>
+        <th class="px-4 py-3 text-right font-medium text-gray-500">Balance</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Due Date</th>
+        <th class="px-4 py-3 text-left font-medium text-gray-500">Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for r in rows %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-3">
+          <div>{{ r.pledger_name ?? 'Anonymous' }}</div>
+          {% if r.phone %}<div class="text-xs text-gray-400">{{ r.phone }}</div>{% endif %}
+        </td>
+        <td class="px-4 py-3 text-gray-500">{{ r.fund_name ?? 'General' }}</td>
+        <td class="px-4 py-3 text-right font-medium">{{ r.pledged_amount|number_format(2) }}</td>
+        <td class="px-4 py-3 text-right text-green-600">{{ r.paid_amount|number_format(2) }}</td>
+        <td class="px-4 py-3 text-right {{ (r.pledged_amount - r.paid_amount) > 0 ? 'text-orange-600 font-semibold' : 'text-gray-400' }}">
+          {{ (r.pledged_amount - r.paid_amount)|number_format(2) }}
+        </td>
+        <td class="px-4 py-3 text-gray-500">{{ r.due_date ? r.due_date|date('d M Y') : '—' }}</td>
+        <td class="px-4 py-3">
+          <span class="px-2 py-0.5 rounded-full text-xs font-medium
+            {{ r.status == 'completed' ? 'bg-green-100 text-green-700' : (r.status == 'overdue' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700') }}">
+            {{ r.status|capitalize }}
+          </span>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">No pledges yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
